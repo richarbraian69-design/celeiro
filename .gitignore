@@ -1,0 +1,5 @@
+node_modules/
+dados/
+*.json.tmp
+celeiro-dados*.json
+.env
