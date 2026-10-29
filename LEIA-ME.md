@@ -17,7 +17,7 @@ Nenhum dado financeiro fica nesta pasta nem no GitHub. Os números entram pelo p
 
 1. Em <https://github.com>, clique em **New repository**, dê o nome `celeiro` e marque **Private**. Clique em **Create repository**.
 2. Na página do repositório, clique em **uploading an existing file**.
-3. Arraste **o conteúdo** desta pasta: `servidor.js`, `package.json`, `LEIA-ME.md` e a pasta `publico`.
+3. Arraste **tudo o que está dentro** desta pasta: `servidor.js`, `package.json`, `package-lock.json`, `LEIA-ME.md` e a pasta `publico` inteira.
 4. Clique em **Commit changes**.
 
 ### 2. Crie o serviço no Railway
