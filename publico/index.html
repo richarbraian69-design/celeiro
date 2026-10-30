@@ -184,12 +184,17 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Lançamentos */
 .dia-rot{margin:0;padding:10px 18px 6px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);background:var(--bg);border-top:1px solid var(--linha)}
 .dia-rot:first-child{border-top:0}
-.lc{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:11px 12px 11px 18px;border-top:1px solid var(--linha);cursor:pointer}
+.lc{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:4px 14px;align-items:center;padding:11px 12px 11px 18px;border-top:1px solid var(--linha);cursor:pointer}
 .dia-rot + .lc{border-top:0}
 .lc:hover{background:var(--sup)}
 .lc-t{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 .lc-t b{font-weight:500;overflow-wrap:anywhere}
 .lc-v{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.lc-x{opacity:0;width:26px;height:26px}
+.lc:hover .lc-x,.lc:focus-within .lc-x,.lc-x:focus-visible{opacity:1}
+@media (hover:none){.lc-x{opacity:1}}
+.mv-x{width:22px;height:22px;margin:-3px -4px -3px 6px;vertical-align:middle}
+.mv-x svg{width:13px;height:13px}
 .lc.editando{background:var(--sup-2)}
 
 /* Formulários */
@@ -332,7 +337,7 @@ tr.inativo td{color:var(--tx3)}
   .nav button{width:auto;flex:none}
   .nav-rotulo,.lateral-pe{display:none}
   .principal{margin:6px 0 0;border-radius:18px 18px 0 0;border-left:0;border-right:0;padding:22px max(16px,env(safe-area-inset-right,0px)) 60px max(16px,env(safe-area-inset-left,0px))}
-  .lc{grid-template-columns:minmax(0,1fr) auto}
+  .lc{grid-template-columns:minmax(0,1fr) auto auto}
   .lc .lc-forma{display:none}
 }
 </style>
@@ -677,7 +682,7 @@ function linhaCx(cx){
   return '<div class="cx"><div class="cx-nome"><span class="ponto" style="--t:'+esc(cx.cor)+'"></span><span>'+esc(cx.nome)+'</span>'+(cx.tipo==='fixa'?'<span class="pill">fixa</span>':'')+'</div><div class="cx-val"><b>'+brl0(g)+'</b> de '+brl0(p)+'</div><div class="barra'+(g>p&&p?' alerta':'')+'"><i style="width:'+(fr*100).toFixed(1)+'%"></i></div><p class="cx-sub'+(g>p&&p?' alerta':'')+'">'+esc(sub)+'</p></div>';
 }
 function linhaLanc(l){
-  return '<div class="lc'+(S.editLanc===l.id?' editando':'')+'" data-act="editar-lanc" data-id="'+esc(l.id)+'" role="button" tabindex="0"><div class="lc-t"><b>'+esc(l.desc||'Sem descrição')+'</b>'+tagCx(l.caixinha)+(l.por && S.usuario && l.por!==S.usuario.nome ? '<span class="pill">'+esc(l.por)+'</span>' : '')+'</div><span class="pill lc-forma">'+esc(FORMAS[l.forma]||l.forma||'')+'</span><span class="lc-v">'+brl(l.valor)+'</span></div>';
+  return '<div class="lc'+(S.editLanc===l.id?' editando':'')+'" data-act="editar-lanc" data-id="'+esc(l.id)+'" role="button" tabindex="0"><div class="lc-t"><b>'+esc(l.desc||'Sem descrição')+'</b>'+tagCx(l.caixinha)+(l.por && S.usuario && l.por!==S.usuario.nome ? '<span class="pill">'+esc(l.por)+'</span>' : '')+'</div><span class="pill lc-forma">'+esc(FORMAS[l.forma]||l.forma||'')+'</span><span class="lc-v">'+brl(l.valor)+'</span><button class="icone-btn lc-x" data-act="lanc-rm" data-id="'+esc(l.id)+'" aria-label="Apagar '+esc(l.desc||'gasto')+'" title="Apagar">'+I.x+'</button></div>';
 }
 
 /* ---------- Vista: Lançamentos ---------- */
@@ -743,7 +748,7 @@ function vCaixinhas(){
         (temIdeal?(it.ideal!=null?'<label>Ideal<input class="campo num" id="'+idc+'-ideal" data-cfg="'+base+'.ideal" data-tipo="num" inputmode="decimal" value="'+String(num(it.ideal)).replace('.',',')+'"></label>':'<label>Ideal<span class="nota" style="padding:7px 0">igual</span></label>'):'')+
         (cx.tipo==='fixa'&&!it.paraFundo?(feito?'<span class="pill ok">lançado</span>':'<span class="pill">a lançar</span>'):'')+'</div></div>';
     }).join('');
-    return '<div class="cartao"><h4><span class="ponto" style="--t:'+esc(cx.cor)+'"></span>'+esc(cx.nome)+' <span class="pill">'+(cx.tipo==='fixa'?'fixa':'variável')+'</span>'+(cx.semanal?'<span class="pill">controle semanal</span>':'')+'</h4>'+
+    return '<div class="cartao"><h4><span class="ponto" style="--t:'+esc(cx.cor)+'"></span>'+esc(cx.nome)+' <span class="pill">'+(cx.tipo==='fixa'?'fixa':'variável')+'</span>'+(cx.semanal?'<span class="pill">controle semanal</span>':'')+'<button class="icone-btn" style="margin-left:auto" data-act="cx-rm" data-cx="'+esc(cx.id)+'" aria-label="Apagar a caixinha '+esc(cx.nome)+'" title="Apagar caixinha">'+I.x+'</button></h4>'+
       '<div class="meta-topo"><span>Gasto em '+nomeMesCurto(S.mes)+'</span><b>'+brl0(g)+' de '+brl0(p)+'</b></div><div class="barra'+(p&&g>p?' alerta':'')+'"><i style="width:'+(p?Math.min(100,g/p*100):0).toFixed(1)+'%"></i></div>'+
       '<div class="itens">'+(itens||'<p class="it-vazio">Sem itens.</p>')+'</div>'+
       '<div class="acoes"><button class="link" data-act="add-item" data-ci="'+ci+'">Adicionar item</button></div></div>';
@@ -776,20 +781,21 @@ function vCartao(){
 function vCeleiro(){
   var cheias=Math.round(12*progressoFamilia());
   var cards=fundos().map(function(f,fi){
-    var s=saldoFundo(f.id), meta=num(f.meta), dep=depositosNoMes(f.id,S.mes), mensal=num(f.mensal);
+    var s=saldoFundo(f.id), meta=num(f.meta), mensal=num(f.mensal);
+    var dep=soma(S.movs.filter(function(m){ return m.fundo===f.id && ymDe(m.data)===S.mes; }), function(m){ return m.valor; });
     var fr=meta?Math.max(0,Math.min(1,s/meta)):0;
     var estado='';
     if(f.piso && s<num(f.piso)) estado='<span class="pill aviso">abaixo de '+brl0(f.piso)+', reabasteça</span>';
     else if(meta && s>=meta) estado='<span class="pill ok">meta alcançada</span>';
     var movs=S.movs.filter(function(m){return m.fundo===f.id;}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,5);
     var aberto=S.celAberto===f.id;
-    return '<div class="cartao"><h4>'+esc(f.nome)+' '+estado+'</h4><div class="grande">'+brl0(s)+(meta?'<small>de '+brl0(meta)+'</small>':'')+'</div>'+
+    return '<div class="cartao"><h4>'+esc(f.nome)+' '+estado+(f.tipo==='projeto'?'<button class="icone-btn" style="margin-left:auto" data-act="fundo-rm" data-id="'+esc(f.id)+'" aria-label="Apagar '+esc(f.nome)+'" title="Apagar caixinha">'+I.x+'</button>':'')+'</h4><div class="grande">'+brl0(s)+(meta?'<small>de '+brl0(meta)+'</small>':'')+'</div>'+
       (meta?'<div class="barra ouro"><i style="width:'+(fr*100).toFixed(1)+'%"></i>'+(f.piso?'<span class="marco" style="left:'+Math.min(100,num(f.piso)/meta*100).toFixed(1)+'%"></span>':'')+'</div>':'')+
       '<div class="linhas">'+(mensal?'<div><span>Guardar por mês</span><b>'+brl0(mensal)+'</b></div><div><span>Guardado em '+nomeMesCurto(S.mes)+'</span><b>'+brl0(dep)+'</b></div>':'')+(f.metaFinal?'<div><span>Meta seguinte</span><b>'+brl0(f.metaFinal)+'</b></div>':'')+(mensal&&meta&&s<meta?'<div><span>Tempo até a meta</span><b>'+Math.ceil((meta-s)/mensal)+' meses</b></div>':'')+'</div>'+
       (f.nota?'<p class="nota">'+esc(f.nota)+'</p>':'')+
       (aberto?'<form class="forma" data-form="mov" data-fundo="'+esc(f.id)+'" style="padding:14px"><div class="campos"><label>Valor<input class="campo num" id="m-valor" inputmode="decimal" value="'+(mensal&&dep<mensal?String(Math.round((mensal-dep)*100)/100).replace('.',','):'')+'" required></label><label>Data<input class="campo" type="date" id="m-data" value="'+hoje()+'"></label><label class="largo">Nota<input class="campo" id="m-nota" placeholder="Opcional"></label></div><div class="acoes"><button class="btn btn-escuro btn-p" type="submit" data-sinal="1">Guardar</button><button class="btn btn-claro btn-p" type="submit" data-sinal="-1">Retirar</button><button class="link" type="button" data-act="cel-fechar">Cancelar</button></div></form>':
         '<div class="acoes"><button class="btn btn-escuro btn-p" data-act="cel-abrir" data-id="'+esc(f.id)+'">Guardar ou retirar</button></div>')+
-      (movs.length?'<div class="linhas">'+movs.map(function(m){ return '<div><span>'+dataBR(m.data)+(m.nota?' · '+esc(m.nota):'')+'</span><b'+(m.valor<0?' class="perigo"':'')+'>'+(m.valor<0?'−':'+')+brl(Math.abs(m.valor))+'</b></div>'; }).join('')+'</div>':'')+
+      (movs.length?'<div class="linhas">'+movs.map(function(m){ return '<div><span>'+dataBR(m.data)+(m.nota?' · '+esc(m.nota):'')+'</span><b'+(m.valor<0?' class="perigo"':'')+'>'+(m.valor<0?'−':'+')+brl(Math.abs(m.valor))+'<button class="icone-btn mv-x" data-act="mov-rm" data-id="'+esc(m.id)+'" aria-label="Apagar este '+(m.valor<0?'saque':'depósito')+'" title="Apagar">'+I.x+'</button></b></div>'; }).join('')+'</div>':'')+
     '</div>';
   }).join('');
   return '<div class="pagina"><div class="plano"><div><h2 class="h2">O <em>celeiro</em></h2><p class="intro">Como José no Egito: guardar nos anos bons para os anos magros. Cada saca é um doze avos da reserva de emergência da família. O dinheiro da reserva fica separado do dia a dia, numa conta com liquidez diária.</p></div>'+
@@ -942,6 +948,20 @@ function toast(t,sub,citacao,acao){
   clearTimeout(toastT); toastT=setTimeout(function(){ cam.innerHTML=''; S.acaoToast=null; },acao?10000:citacao?6500:3800);
 }
 
+/* ---------- Desfazer ---------- */
+function semId(o){ var x=JSON.parse(JSON.stringify(o)); delete x.id; return x; }
+function falhaDesfazer(){ toast('Não consegui desfazer','Tente de novo em instantes.'); }
+function emSerie(lista,fn){ var c=Promise.resolve(); lista.forEach(function(x){ c=c.then(function(){ return fn(x); }); }); return c; }
+/* Desfaz uma criação: apaga os registros criados */
+function desfazerCriacao(paths,msg){ return {rotulo:'Desfazer', fn:function(){ emSerie(paths,function(p){ return S.db.doc(p)['delete'](); }).then(function(){ toast(msg||'Desfeito'); render(); }, falhaDesfazer); }}; }
+/* Desfaz uma exclusão ou alteração: grava de volta o registro como estava */
+function desfazerRegravar(path,dados,msg){ return {rotulo:'Desfazer', fn:function(){ S.db.doc(path).set(dados).then(function(){ toast(msg||'Desfeito'); render(); }, falhaDesfazer); }}; }
+/* Desfaz uma mudança no orçamento: volta a configuração inteira ao estado anterior */
+function fotoCfg(){ return JSON.parse(JSON.stringify(S.cfg)); }
+function desfazerCfg(foto,msg){ return {rotulo:'Desfazer', fn:function(){ S.cfg=foto; salvarCfg(); render(); toast(msg||'Desfeito'); }}; }
+function fotoReceb(){ return JSON.parse(JSON.stringify(S.receb||{itens:{},avulsos:[]})); }
+function desfazerReceb(foto,ym,msg){ return {rotulo:'Desfazer', fn:function(){ if(S.mes===ym){ S.receb=foto; salvarReceb(); } else S.db.doc('recebimentos/'+ym).set(foto); render(); toast(msg||'Desfeito'); }}; }
+
 /* ---------- Ações ---------- */
 function setPath(obj,path,val){ var ks=path.split('.'), o=obj; for(var i=0;i<ks.length-1;i++){ var k=ks[i]; if(o[k]==null) o[k]={}; o=o[k]; } o[ks[ks.length-1]]=val; }
 
@@ -958,11 +978,13 @@ document.addEventListener('click',function(ev){
     case 'filtro': S.filtroCx=el.dataset.cx; render(); break;
     case 'editar-lanc': S.editLanc=el.dataset.id; if(S.view!=='lancamentos'){ S.view='lancamentos'; } render(); window.scrollTo({top:0,behavior:'smooth'}); break;
     case 'cancelar-edit': S.editLanc=null; render(); break;
-    case 'excluir-lanc':
-      if(el.dataset.ok!=='1'){ el.dataset.ok='1'; el.textContent='Confirmar exclusão'; return; }
-      if(!exigirDb()) return;
-      S.db.doc('lancamentos/'+el.dataset.id).delete().then(function(){ S.editLanc=null; toast('Lançamento excluído'); render(); }).catch(function(){ toast('Não consegui excluir','Tente de novo.'); });
-      break;
+    case 'excluir-lanc': case 'lanc-rm':
+      (function(){
+        if(!exigirDb()) return;
+        var lid=el.dataset.id, l=S.lanc.filter(function(x){return x.id===lid;})[0]; if(!l) return;
+        var dados=semId(l);
+        S.db.doc('lancamentos/'+lid)['delete']().then(function(){ if(S.editLanc===lid) S.editLanc=null; render(); toast('"'+(l.desc||'Gasto')+'" apagado', brl(l.valor)+' deixaram de contar em '+nomeCx(l.caixinha)+'.', false, desfazerRegravar('lancamentos/'+lid,dados,'"'+(l.desc||'Gasto')+'" voltou')); }).catch(function(){ toast('Não consegui apagar','Tente de novo.'); });
+      })(); break;
     case 'modo': S.cfg.modo=el.dataset.m; salvarCfg(); render(); break;
     case 'add-item': S.cfg.caixinhas[+el.dataset.ci].itens.push({id:uid(),nome:'Novo item',valor:0}); salvarCfg(); render(); break;
     case 'rm-item':
@@ -978,21 +1000,45 @@ document.addEventListener('click',function(ev){
     case 'toast-acao': var fnT=S.acaoToast; S.acaoToast=null; document.getElementById('toast-w').innerHTML=''; if(fnT) fnT(); break;
     case 'nova-cx':
       var cores=['#3b6fd8','#e5487a','#2f9e6a','#d9831f','#8e6cf0','#1f9bb5','#b5651d','#c0392b'];
-      S.cfg.caixinhas.push({id:uid(),nome:'Nova caixinha',tipo:'variavel',cor:cores[S.cfg.caixinhas.length%cores.length],itens:[{id:uid(),nome:'Valor do mês',valor:0}]}); salvarCfg(); render(); break;
+      var fotoN=fotoCfg();
+      S.cfg.caixinhas.push({id:uid(),nome:'Nova caixinha',tipo:'variavel',cor:cores[S.cfg.caixinhas.length%cores.length],itens:[{id:uid(),nome:'Valor do mês',valor:0}]}); salvarCfg(); render();
+      toast('Nova caixinha criada','Troque o nome e o valor no fim da lista.',false,desfazerCfg(fotoN,'Caixinha desfeita')); break;
+    case 'cx-rm':
+      (function(){
+        var cx=acharCx(el.dataset.cx); if(!cx) return;
+        var n=S.lanc.filter(function(l){return l.caixinha===cx.id;}).length;
+        var foto=fotoCfg(); S.cfg.caixinhas=S.cfg.caixinhas.filter(function(c){return c.id!==cx.id;}); salvarCfg(); render();
+        toast('Caixinha "'+cx.nome+'" apagada', n?n+' gasto'+(n===1?'':'s')+' dela fica'+(n===1?'':'m')+' como "Sem caixinha".':'', false, desfazerCfg(foto,'"'+cx.nome+'" voltou'));
+      })(); break;
     case 'lancar-fixas': lancarFixas(); break;
     case 'cel-abrir': S.celAberto=el.dataset.id; render(); setTimeout(function(){ var i=document.getElementById('m-valor'); if(i) i.focus(); },20); break;
     case 'cel-fechar': S.celAberto=null; render(); break;
+    case 'mov-rm':
+      (function(){
+        if(!exigirDb()) return;
+        var mid=el.dataset.id, m=S.movs.filter(function(x){return x.id===mid;})[0]; if(!m) return;
+        var dados=semId(m), f=acharFundo(m.fundo)||{};
+        S.db.doc('movimentos/'+mid)['delete']().then(function(){ render(); toast((m.valor<0?'Retirada':'Depósito')+' de '+brl(Math.abs(m.valor))+' apagado', 'Saiu do histórico de '+(f.nome||'reserva')+'.', false, desfazerRegravar('movimentos/'+mid,dados,'Voltou para o histórico')); }).catch(function(){ toast('Não consegui apagar','Tente de novo.'); });
+      })(); break;
+    case 'fundo-rm':
+      (function(){
+        var fid=el.dataset.id, f=acharFundo(fid); if(!f) return;
+        if(Math.abs(saldoFundo(fid))>0.009){ toast('Essa caixinha ainda tem '+brl(saldoFundo(fid)),'Retire o saldo antes de apagar.'); return; }
+        var foto=fotoCfg(); S.cfg.fundos=S.cfg.fundos.filter(function(x){return x.id!==fid;}); salvarCfg(); render();
+        toast('"'+f.nome+'" apagada do celeiro','',false,desfazerCfg(foto,'"'+f.nome+'" voltou'));
+      })(); break;
     case 'cli-inativar':
-      if(el.dataset.ok!=='1'){ el.dataset.ok='1'; el.classList.add('perigo'); el.title='Clique de novo para encerrar'; return; }
-      if(exigirDb()) S.db.doc('clientes/'+el.dataset.id).update({ativo:false}).catch(function(){ toast('Não salvei','Tente de novo.'); }); break;
+      (function(){
+        if(!exigirDb()) return;
+        var cid=el.dataset.id, c=S.clientes.filter(function(x){return x.id===cid;})[0]; if(!c) return;
+        S.db.doc('clientes/'+cid).update({ativo:false}).then(function(){ toast(c.nome+' encerrado','Saiu do faturamento previsto. Fica na lista de clientes encerrados.',false,{rotulo:'Desfazer',fn:function(){ S.db.doc('clientes/'+cid).update({ativo:true}).then(function(){ toast(c.nome+' voltou'); render(); },falhaDesfazer); }}); }).catch(function(){ toast('Não salvei','Tente de novo.'); });
+      })(); break;
     case 'cli-reativar': if(exigirDb()) S.db.doc('clientes/'+el.dataset.id).update({ativo:true}); break;
     case 'av-rec': S.receb.avulsos[+el.dataset.i].recebido=!S.receb.avulsos[+el.dataset.i].recebido; salvarReceb(); render(); break;
-    case 'av-rm': S.receb.avulsos.splice(+el.dataset.i,1); salvarReceb(); render(); break;
+    case 'av-rm': (function(){ var foto=fotoReceb(), a=S.receb.avulsos.splice(+el.dataset.i,1)[0]; salvarReceb(); render(); toast('"'+((a&&a.desc)||'Entrada')+'" apagada','',false,desfazerReceb(foto,S.mes,'Entrada voltou')); })(); break;
     case 'custo-add': S.cfg.custosEmpresa.push({id:uid(),nome:'Novo custo',valor:0}); salvarCfg(); render(); break;
-    case 'custo-rm':
-      if(el.dataset.ok!=='1'){ el.dataset.ok='1'; el.classList.add('perigo'); return; }
-      S.cfg.custosEmpresa.splice(+el.dataset.i,1); salvarCfg(); render(); break;
-    case 'pr-rm': S.cfg.prospects.splice(+el.dataset.i,1); salvarCfg(); render(); break;
+    case 'custo-rm': (function(){ var foto=fotoCfg(), c=S.cfg.custosEmpresa.splice(+el.dataset.i,1)[0]; salvarCfg(); render(); toast('"'+((c&&c.nome)||'Custo')+'" apagado dos custos','',false,desfazerCfg(foto,'Custo voltou')); })(); break;
+    case 'pr-rm': (function(){ var foto=fotoCfg(), pr=S.cfg.prospects.splice(+el.dataset.i,1)[0]; salvarCfg(); render(); toast('"'+((pr&&pr.nome)||'Contato')+'" saiu da negociação','',false,desfazerCfg(foto,'Voltou para a negociação')); })(); break;
     case 'ex-toggle': salvarExame(function(e){ e.respostas=e.respostas||{}; e.respostas[el.dataset.k]=!e.respostas[el.dataset.k]; }); break;
     case 'rv-incluir': S.revisao[+el.dataset.i].incluir=!S.revisao[+el.dataset.i].incluir; render(); break;
     case 'rv-descartar': S.revisao=null; render(); break;
@@ -1040,10 +1086,12 @@ document.addEventListener('submit',function(ev){
     if(!cx){ toast('Escolha a caixinha','Assim você sabe de onde o dinheiro saiu.'); return; }
     var dados={valor:valor, data:document.getElementById(p+'-data').value||hoje(), desc:document.getElementById(p+'-desc').value.trim(), caixinha:cx, forma:document.getElementById(p+'-forma').value};
     var id=f.dataset.id;
+    var antes = id ? (S.lanc.filter(function(l){return l.id===id;})[0]) : null; antes = antes ? semId(antes) : null;
     var op = id ? S.db.doc('lancamentos/'+id).update(dados) : S.db.collection('lancamentos').add(Object.assign(dados,{criado:new Date().toISOString(), por:S.usuario?S.usuario.nome:''}));
-    op.then(function(){
+    op.then(function(ref){
       var cxo=acharCx(cx), rest=cxo?prevCx(cxo)-gastoCx(cxo,ymDe(dados.data)):0;
-      toast(id?'Lançamento atualizado':'Lançado em '+nomeCx(cx), cxo&&prevCx(cxo)?(rest>=0?'Restam '+brl0(rest)+' nessa caixinha em '+nomeMesCurto(ymDe(dados.data))+'.':'Essa caixinha passou '+brl0(-rest)+' do previsto.'):'');
+      var acao = id ? (antes?desfazerRegravar('lancamentos/'+id,antes,'Lançamento voltou ao que era'):null) : desfazerCriacao(['lancamentos/'+ref.id],'Lançamento desfeito');
+      toast(id?'Lançamento atualizado':'Lançado em '+nomeCx(cx), cxo&&prevCx(cxo)?(rest>=0?'Restam '+brl0(rest)+' nessa caixinha em '+nomeMesCurto(ymDe(dados.data))+'.':'Essa caixinha passou '+brl0(-rest)+' do previsto.'):'', false, acao);
       S.editLanc=null; if(f.closest('#camada')) fecharCamada(); else render();
     }).catch(function(e){ toast('Não salvei o gasto', e&&e.code==='quota_exceeded'?'O espaço do painel acabou.':'Tente de novo.'); });
     return;
@@ -1053,22 +1101,25 @@ document.addEventListener('submit',function(ev){
     if(!(v>0)){ toast('Informe o valor'); return; }
     var fundo=f.dataset.fundo;
     if(sinal<0 && v>saldoFundo(fundo)+0.001){ toast('Não há esse valor nessa reserva','Saldo: '+brl(saldoFundo(fundo))); return; }
-    S.db.collection('movimentos').add({fundo:fundo, valor:sinal*v, data:document.getElementById('m-data').value||hoje(), nota:document.getElementById('m-nota').value.trim()}).then(function(){
+    S.db.collection('movimentos').add({fundo:fundo, valor:sinal*v, data:document.getElementById('m-data').value||hoje(), nota:document.getElementById('m-nota').value.trim()}).then(function(ref){
       S.celAberto=null; render();
-      if(sinal>0){ var c=BEM_FEITO[Math.floor(Math.random()*BEM_FEITO.length)]; toast(c[0], brl(v)+' guardados · '+c[1], true); } else toast('Retirada registrada', brl(v)+' saíram de '+(acharFundo(fundo)||{}).nome);
+      var acao=desfazerCriacao(['movimentos/'+ref.id], sinal>0?'Depósito desfeito':'Retirada desfeita');
+      if(sinal>0){ var c=BEM_FEITO[Math.floor(Math.random()*BEM_FEITO.length)]; toast(c[0], brl(v)+' guardados · '+c[1], true, acao); } else toast('Retirada registrada', brl(v)+' saíram de '+(acharFundo(fundo)||{}).nome, false, acao);
     }).catch(function(){ toast('Não salvei','Tente de novo.'); });
     return;
   }
   if(tipo==='novo-fundo'){
-    S.cfg.fundos.push({id:uid(), nome:document.getElementById('nf-nome').value.trim(), tipo:'projeto', meta:num(document.getElementById('nf-meta').value), mensal:num(document.getElementById('nf-mensal').value)});
-    salvarCfg(); render(); toast('Caixinha criada no celeiro'); return;
+    var fotoF=fotoCfg(), nomeF=document.getElementById('nf-nome').value.trim();
+    S.cfg.fundos.push({id:uid(), nome:nomeF, tipo:'projeto', meta:num(document.getElementById('nf-meta').value), mensal:num(document.getElementById('nf-mensal').value)});
+    salvarCfg(); render(); toast('"'+nomeF+'" criada no celeiro','',false,desfazerCfg(fotoF,'Caixinha desfeita')); return;
   }
   if(tipo==='cliente'){
-    S.db.collection('clientes').add({nome:document.getElementById('nc-nome').value.trim(), valor:num(document.getElementById('nc-valor').value), tipo:document.getElementById('nc-tipo').value, grupo:document.getElementById('nc-tipo').value==='outro'?'outros':'agencia', ativo:true}).then(function(){ toast('Cliente adicionado'); }).catch(function(){ toast('Não salvei o cliente','Tente de novo.'); });
+    S.db.collection('clientes').add({nome:document.getElementById('nc-nome').value.trim(), valor:num(document.getElementById('nc-valor').value), tipo:document.getElementById('nc-tipo').value, grupo:document.getElementById('nc-tipo').value==='outro'?'outros':'agencia', ativo:true}).then(function(ref){ toast('Cliente adicionado','',false,desfazerCriacao(['clientes/'+ref.id],'Cliente desfeito')); }).catch(function(){ toast('Não salvei o cliente','Tente de novo.'); });
     f.reset(); return;
   }
   if(tipo==='avulso'){
     if(!S.receb) S.receb={itens:{},avulsos:[]}; S.receb.avulsos=S.receb.avulsos||[];
+    var fotoAv=fotoReceb(), ymAv=S.mes; setTimeout(function(){ toast('Entrada adicionada em '+nomeMesCurto(ymAv),'',false,desfazerReceb(fotoAv,ymAv,'Entrada desfeita')); },0);
     S.receb.avulsos.push({id:uid(), desc:document.getElementById('av-desc').value.trim(), valor:num(document.getElementById('av-valor').value), recebido:false});
     salvarReceb(); render(); return;
   }
@@ -1087,8 +1138,9 @@ function lancarFixas(){
     novos.push({valor:v, data:dia, desc:it.nome, caixinha:cx.id, forma:it.forma||'boleto', origem:origem, criado:new Date().toISOString()});
   }); });
   if(!novos.length){ toast('As contas fixas de '+nomeMesCurto(ym)+' já estão lançadas'); return; }
-  var c=Promise.resolve(); novos.forEach(function(n){ c=c.then(function(){ return S.db.collection('lancamentos').add(n); }); });
-  c.then(function(){ toast(novos.length+' contas fixas lançadas em '+nomeMesCurto(ym),'Confira as datas e as formas de pagamento na lista.'); }).catch(function(){ toast('Parte das contas não foi lançada','Tente de novo; as que já entraram não se repetem.'); });
+  var criados=[];
+  var c=Promise.resolve(); novos.forEach(function(n){ c=c.then(function(){ return S.db.collection('lancamentos').add(n).then(function(r){ criados.push('lancamentos/'+r.id); }); }); });
+  c.then(function(){ toast(novos.length+' contas fixas lançadas em '+nomeMesCurto(ym),'Confira as datas e as formas de pagamento na lista.',false,desfazerCriacao(criados,'Contas fixas desfeitas')); }).catch(function(){ toast('Parte das contas não foi lançada','Tente de novo; as que já entraram não se repetem.'); });
 }
 
 var exCadeia=Promise.resolve();
@@ -1154,9 +1206,9 @@ function lerPrint(files){
 function lancarRevisao(){
   if(!exigirDb() || !S.revisao) return;
   var itens=S.revisao.filter(function(r){return r.incluir && r.caixinha;});
-  var c=Promise.resolve(), n=0;
-  itens.forEach(function(r){ c=c.then(function(){ return S.db.collection('lancamentos').add({valor:r.valor, data:r.data, desc:r.descricao, caixinha:r.caixinha, forma:r.forma, criado:new Date().toISOString(), via:'print', por:S.usuario?S.usuario.nome:''}).then(function(){ n++; r.incluir=false; r.lancado=true; }); }); });
-  c.then(function(){ S.revisao=null; toast(n+' gasto'+(n===1?'':'s')+' lançado'+(n===1?'':'s')); render(); }).catch(function(){ S.revisao=S.revisao.filter(function(r){return !r.lancado;}); toast(n+' lançados; o resto não entrou','Tente de novo com os que sobraram.'); render(); });
+  var c=Promise.resolve(), n=0, criados=[];
+  itens.forEach(function(r){ c=c.then(function(){ return S.db.collection('lancamentos').add({valor:r.valor, data:r.data, desc:r.descricao, caixinha:r.caixinha, forma:r.forma, criado:new Date().toISOString(), via:'print', por:S.usuario?S.usuario.nome:''}).then(function(ref){ n++; criados.push('lancamentos/'+ref.id); r.incluir=false; r.lancado=true; }); }); });
+  c.then(function(){ S.revisao=null; toast(n+' gasto'+(n===1?'':'s')+' lançado'+(n===1?'':'s'),'',false,desfazerCriacao(criados,'Gastos do print desfeitos')); render(); }).catch(function(){ S.revisao=S.revisao.filter(function(r){return !r.lancado;}); toast(n+' lançados; o resto não entrou','Tente de novo com os que sobraram.'); render(); });
 }
 document.addEventListener('dragover',function(ev){ var z=ev.target.closest&&ev.target.closest('#print-zona'); if(z){ ev.preventDefault(); z.classList.add('sobre'); } });
 document.addEventListener('dragleave',function(ev){ var z=ev.target.closest&&ev.target.closest('#print-zona'); if(z) z.classList.remove('sobre'); });
