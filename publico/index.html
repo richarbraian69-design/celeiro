@@ -114,7 +114,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .mes b{font-weight:500;font-size:.92rem;min-width:118px;text-align:center}
 
 .conteudo{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"banner lado" "vista lado";gap:22px 24px;align-items:start}
-.pagina{max-width:1080px;margin:0 auto;display:grid;gap:22px}
+.pagina{max-width:1160px;margin:0 auto;display:grid;gap:22px}
 @media (max-width:1180px){.conteudo{grid-template-columns:minmax(0,1fr);grid-template-areas:"banner" "lado" "vista"}}
 
 .banner{grid-area:banner;position:relative;overflow:hidden;border-radius:16px;background:var(--banner);color:var(--banner-tx);min-height:190px;padding:26px clamp(22px,3vw,34px);display:grid;align-content:center;border:1px solid var(--linha)}
@@ -225,6 +225,24 @@ tr.inativo td{color:var(--tx3)}
 
 /* Grade de cartões */
 .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.grade.cxs{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));align-items:start}
+/* Itens de uma caixinha: o nome ocupa a linha toda; os valores ficam embaixo */
+.itens{display:grid}
+.it{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--linha);min-width:0}
+.it:first-child{border-top:0;padding-top:4px}
+.it-nome{display:grid;gap:4px;min-width:0}
+.it-nome .nota{font-size:.8rem;line-height:1.4}
+.it-vals{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 10px}
+.it-vals label{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);gap:4px}
+.it-vals .campo{width:118px;padding:6px 9px;font-size:.92rem}
+.it-vals .pill{margin-bottom:7px}
+.it-topo{display:flex;align-items:center;gap:4px;min-width:0}
+.it-topo .campo{flex:1;min-width:0}
+.it-vazio{margin:0;padding:6px 0;font-size:.86rem;color:var(--tx3)}
+.toast-acao{justify-self:start;margin-top:6px;border:0;border-radius:8px;padding:5px 11px;background:var(--btn-tx);color:var(--btn);font:inherit;font-size:.84rem;font-weight:600;cursor:pointer}
+.folha-print{border-top:1px solid var(--linha);padding-top:14px}
+.folha-print .print-zona{padding:12px;grid-auto-flow:column;justify-content:center;align-items:center;gap:10px}
+.folha-print .print-zona svg{width:20px;height:20px}
 .cartao{background:var(--painel);border:1px solid var(--linha);border-radius:14px;padding:16px 18px;display:grid;gap:10px;align-content:start;min-width:0}
 .cartao h4{margin:0;font-weight:500;font-size:1rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .grande{font-family:var(--f-serif);font-size:2.2rem;line-height:1;font-variant-numeric:tabular-nums}
@@ -232,7 +250,7 @@ tr.inativo td{color:var(--tx3)}
 .linhas{display:grid;gap:0}
 .linhas div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--linha);font-size:.9rem}
 .linhas div:first-child{border-top:0}
-.linhas span{color:var(--tx2)}
+.linhas > div > span{color:var(--tx2)}
 .linhas b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
 .linhas .total{border-top:1px solid var(--tx3)}
 .linhas .total b,.linhas .total span{color:var(--tx);font-weight:600}
@@ -690,7 +708,7 @@ function vLanc(){
 }
 function painelPrint(){
   if(!S.imgOk) return '<div class="forma"><h3>Lançar pelo <em>print</em></h3><p class="nota">A leitura de prints liga quando a chave <b>ANTHROPIC_API_KEY</b> estiver nas variáveis do Railway.</p></div>';
-  return '<div class="forma"><h3>Lançar pelo <em>print</em></h3><p class="nota">Mande o print do extrato, da fatura ou do comprovante (pode colar com Ctrl+V). O Claude lê cada gasto e pergunta de qual caixinha ele é.</p>'+
+  return '<div class="forma"><h3>Lançar pelo <em>print</em></h3><p class="nota">Mande o print do extrato, da fatura ou do comprovante. O Claude lê cada gasto e pergunta de qual caixinha ele é. Dica: em qualquer tela do Celeiro, é só colar o print com Ctrl+V.</p>'+
     '<label class="print-zona" id="print-zona" for="print-arq">'+I.img+'<span>'+(S.lendo?'Lendo o print…':'Escolher ou arrastar prints aqui')+'</span><input type="file" id="print-arq" accept="image/png,image/jpeg,image/webp" multiple hidden></label>'+
     (S.lendo?'<button class="btn btn-claro btn-p" data-act="parar-print">Parar</button>':'')+'</div>';
 }
@@ -719,22 +737,22 @@ function vCaixinhas(){
     var itens=(cx.itens||[]).map(function(it,ii){
       var fundo=it.paraFundo?acharFundo(it.paraFundo):null;
       var feito = !it.paraFundo && S.lanc.some(function(l){ return l.origem===it.id+'@'+S.mes; });
-      return '<tr><td><input class="campo" data-cfg="caixinhas.'+ci+'.itens.'+ii+'.nome" value="'+esc(it.nome)+'" aria-label="Item">'+(it.nota?'<small class="nota">'+esc(it.nota)+'</small>':'')+(fundo?'<small class="nota">Vai para '+esc(fundo.nome)+' no celeiro</small>':'')+'</td>'+
-        '<td class="n"><input class="campo num" data-cfg="caixinhas.'+ci+'.itens.'+ii+'.valor" data-tipo="num" value="'+String(num(it.valor)).replace('.',',')+'" aria-label="Valor mínimo"></td>'+
-        (temIdeal?'<td class="n">'+(it.ideal!=null?'<input class="campo num" data-cfg="caixinhas.'+ci+'.itens.'+ii+'.ideal" data-tipo="num" value="'+String(num(it.ideal)).replace('.',',')+'" aria-label="Valor ideal">':'<span class="nota">—</span>')+'</td>':'')+
-        '<td class="n">'+(cx.tipo==='fixa'&&!it.paraFundo?(feito?'<span class="pill ok">lançado</span>':'<span class="pill">a lançar</span>'):'')+'</td>'+
-        '<td class="n"><button class="icone-btn" data-act="rm-item" data-ci="'+ci+'" data-ii="'+ii+'" aria-label="Remover item">'+I.x+'</button></td></tr>';
+      var base='caixinhas.'+ci+'.itens.'+ii, idc='cx-'+esc(cx.id)+'-'+esc(it.id||ii);
+      return '<div class="it"><div class="it-nome"><div class="it-topo"><input class="campo" id="'+idc+'-nome" data-cfg="'+base+'.nome" value="'+esc(it.nome)+'" aria-label="Nome do item"><button class="icone-btn" data-act="rm-item" data-cx="'+esc(cx.id)+'" data-ii="'+ii+'" aria-label="Remover '+esc(it.nome)+'" title="Remover item">'+I.x+'</button></div>'+(it.nota?'<small class="nota">'+esc(it.nota)+'</small>':'')+(fundo?'<small class="nota">Vai para '+esc(fundo.nome)+' no celeiro</small>':'')+'</div>'+
+        '<div class="it-vals"><label>'+(temIdeal?'Mínimo':'Valor')+'<input class="campo num" id="'+idc+'-valor" data-cfg="'+base+'.valor" data-tipo="num" inputmode="decimal" value="'+String(num(it.valor)).replace('.',',')+'"></label>'+
+        (temIdeal?(it.ideal!=null?'<label>Ideal<input class="campo num" id="'+idc+'-ideal" data-cfg="'+base+'.ideal" data-tipo="num" inputmode="decimal" value="'+String(num(it.ideal)).replace('.',',')+'"></label>':'<label>Ideal<span class="nota" style="padding:7px 0">igual</span></label>'):'')+
+        (cx.tipo==='fixa'&&!it.paraFundo?(feito?'<span class="pill ok">lançado</span>':'<span class="pill">a lançar</span>'):'')+'</div></div>';
     }).join('');
     return '<div class="cartao"><h4><span class="ponto" style="--t:'+esc(cx.cor)+'"></span>'+esc(cx.nome)+' <span class="pill">'+(cx.tipo==='fixa'?'fixa':'variável')+'</span>'+(cx.semanal?'<span class="pill">controle semanal</span>':'')+'</h4>'+
       '<div class="meta-topo"><span>Gasto em '+nomeMesCurto(S.mes)+'</span><b>'+brl0(g)+' de '+brl0(p)+'</b></div><div class="barra'+(p&&g>p?' alerta':'')+'"><i style="width:'+(p?Math.min(100,g/p*100):0).toFixed(1)+'%"></i></div>'+
-      '<div class="tab-w"><table><thead><tr><th>Item</th><th class="n">'+(temIdeal?'Mínimo':'Valor')+'</th>'+(temIdeal?'<th class="n">Ideal</th>':'')+'<th class="n"></th><th></th></tr></thead><tbody>'+(itens||'<tr><td colspan="5" class="nota">Sem itens.</td></tr>')+'</tbody></table></div>'+
+      '<div class="itens">'+(itens||'<p class="it-vazio">Sem itens.</p>')+'</div>'+
       '<div class="acoes"><button class="link" data-act="add-item" data-ci="'+ci+'">Adicionar item</button></div></div>';
   }).join('');
   return '<div class="pagina"><div class="secao-topo"><div><h2 class="h2">Caixinhas da <em>casa</em></h2><p class="intro">Cada caixinha tem o seu valor. Se uma estoura, a sobra das outras não cobre: ela já tem destino (fralda, mecânico, imprevisto).</p></div>'+
     '<div class="seg" role="group" aria-label="Orçamento"><button data-act="modo" data-m="minimo" aria-pressed="'+(!modoIdeal())+'">Mínimo · '+brl0(totMin)+'</button><button data-act="modo" data-m="ideal" aria-pressed="'+modoIdeal()+'">Ideal · '+brl0(totIdeal)+'</button></div></div>'+
     '<div class="faixa cinza"><span>Previsto em '+nomeMesCurto(S.mes)+': <b>'+brl0(prevTotal())+'</b> · gasto até agora: <b>'+brl0(gasto)+'</b>. O ideal inclui terapia toda semana, academia e jiu-jitsu.</span></div>'+
     '<div class="acoes"><button class="btn btn-claro btn-p" data-act="lancar-fixas">Lançar as contas fixas de '+nomeMesCurto(S.mes)+'</button><button class="btn btn-claro btn-p" data-act="nova-cx">Nova caixinha</button></div>'+
-    '<div class="grade">'+cards+'</div></div>';
+    '<div class="grade cxs">'+cards+'</div></div>';
 }
 
 /* ---------- Vista: Cartão ---------- */
@@ -908,17 +926,20 @@ function carregarContas(){ api('GET','/api/contas').then(function(j){ S.contas=j
 function abrirNovo(){
   if(!S.cfg) return;
   var cam=document.getElementById('camada');
-  cam.innerHTML='<div class="veu" data-act="fechar-veu"><div class="folha" role="dialog" aria-modal="true" aria-label="Novo gasto"><div class="folha-topo"><h3>Novo <em>gasto</em></h3><button class="icone-btn" data-act="fechar" aria-label="Fechar">'+I.x+'</button></div>'+formLanc(null,'q').replace('<form class="forma"','<form class="forma" style="border:0;padding:0;background:none"').replace(/<h3>.*?<\/h3>/,'')+'</div></div>';
+  cam.innerHTML='<div class="veu" data-act="fechar-veu"><div class="folha" role="dialog" aria-modal="true" aria-label="Novo gasto"><div class="folha-topo"><h3>Novo <em>gasto</em></h3><button class="icone-btn" data-act="fechar" aria-label="Fechar">'+I.x+'</button></div>'+formLanc(null,'q').replace('<form class="forma"','<form class="forma" style="border:0;padding:0;background:none"').replace(/<h3>.*?<\/h3>/,'')+
+    (S.imgOk?'<div class="folha-print"><label class="print-zona" for="print-arq-q">'+I.img+'<span>Ou mande o print do extrato e o Claude lança por você</span><input type="file" id="print-arq-q" data-print="1" accept="image/png,image/jpeg,image/webp" multiple hidden></label></div>':'')+
+    '</div></div>';
   setTimeout(function(){ var el=document.getElementById('q-valor'); if(el) el.focus(); },30);
 }
 function fecharCamada(){ document.getElementById('camada').innerHTML=''; if(S.renderPendente){ S.renderPendente=false; render(); } }
 
 /* ---------- Toast ---------- */
 var toastT=null;
-function toast(t,sub,citacao){
+function toast(t,sub,citacao,acao){
   var cam=document.getElementById('toast-w'); if(!cam){ cam=document.createElement('div'); cam.id='toast-w'; document.body.appendChild(cam); }
-  cam.innerHTML='<div class="toast" role="status"><span>'+(citacao?'<em>'+esc(t)+'</em>':esc(t))+'</span>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</div>';
-  clearTimeout(toastT); toastT=setTimeout(function(){ cam.innerHTML=''; },citacao?6500:3800);
+  S.acaoToast = acao ? acao.fn : null;
+  cam.innerHTML='<div class="toast" role="status"><span>'+(citacao?'<em>'+esc(t)+'</em>':esc(t))+'</span>'+(sub?'<small>'+esc(sub)+'</small>':'')+(acao?'<button class="toast-acao" data-act="toast-acao">'+esc(acao.rotulo)+'</button>':'')+'</div>';
+  clearTimeout(toastT); toastT=setTimeout(function(){ cam.innerHTML=''; S.acaoToast=null; },acao?10000:citacao?6500:3800);
 }
 
 /* ---------- Ações ---------- */
@@ -945,8 +966,16 @@ document.addEventListener('click',function(ev){
     case 'modo': S.cfg.modo=el.dataset.m; salvarCfg(); render(); break;
     case 'add-item': S.cfg.caixinhas[+el.dataset.ci].itens.push({id:uid(),nome:'Novo item',valor:0}); salvarCfg(); render(); break;
     case 'rm-item':
-      if(el.dataset.ok!=='1'){ el.dataset.ok='1'; el.classList.add('perigo'); el.title='Clique de novo para remover'; return; }
-      S.cfg.caixinhas[+el.dataset.ci].itens.splice(+el.dataset.ii,1); salvarCfg(); render(); break;
+      (function(){
+        var cxId=el.dataset.cx, ii=+el.dataset.ii, cx=acharCx(cxId); if(!cx) return;
+        var item=cx.itens.splice(ii,1)[0]; if(!item) return;
+        salvarCfg(); render();
+        toast('"'+item.nome+'" saiu de '+cx.nome, 'O valor deixa de contar no previsto do mês.', false, {rotulo:'Desfazer', fn:function(){
+          var alvo=acharCx(cxId); if(!alvo) return;
+          alvo.itens.splice(Math.min(ii,alvo.itens.length),0,item); salvarCfg(); render(); toast('"'+item.nome+'" voltou para '+alvo.nome);
+        }});
+      })(); break;
+    case 'toast-acao': var fnT=S.acaoToast; S.acaoToast=null; document.getElementById('toast-w').innerHTML=''; if(fnT) fnT(); break;
     case 'nova-cx':
       var cores=['#3b6fd8','#e5487a','#2f9e6a','#d9831f','#8e6cf0','#1f9bb5','#b5651d','#c0392b'];
       S.cfg.caixinhas.push({id:uid(),nome:'Nova caixinha',tipo:'variavel',cor:cores[S.cfg.caixinhas.length%cores.length],itens:[{id:uid(),nome:'Valor do mês',valor:0}]}); salvarCfg(); render(); break;
@@ -995,7 +1024,7 @@ document.addEventListener('change',function(ev){
     var r=S.revisao[+el.dataset.i]; if(el.dataset.rv==='valor') r.valor=num(el.value); else r[el.dataset.rv]=el.value; pedirRenderDepois(); return;
   }
   if(el.dataset.ex){ var k=el.dataset.ex, vv=el.value; salvarExame(function(e){ e[k]=vv; }); return; }
-  if(el.id==='print-arq' && el.files && el.files.length){ lerPrint(el.files); }
+  if((el.id==='print-arq' || el.dataset.print) && el.files && el.files.length){ lerPrint(el.files); }
 });
 function pedirRenderDepois(){ setTimeout(pedirRender,0); }
 
@@ -1096,7 +1125,10 @@ function lerPrint(files){
   if(!S.imgOk || S.lendo) return;
   var lista=Array.prototype.slice.call(files,0,4).filter(function(f){ return /^image\//.test(f.type); });
   if(!lista.length){ toast('Escolha uma imagem','Use PNG, JPG ou WebP.'); return; }
-  S.lendo=true; render();
+  if(document.getElementById('camada').innerHTML) fecharCamada();
+  if(S.view!=='lancamentos'){ S.view='lancamentos'; S.editLanc=null; try{ history.replaceState(null,'','#lancamentos'); }catch(e){} }
+  S.lendo=true; render(); window.scrollTo({top:0,behavior:'smooth'});
+  toast('Lendo o print…','Leva uns segundos. Os gastos aparecem aqui para você conferir antes de lançar.');
   printCtl=new AbortController();
   var ctl=printCtl;
   var cxs=(S.cfg.caixinhas||[]).map(function(c){ return c.id+': '+c.nome+(c.itens&&c.itens.length?' ('+c.itens.map(function(i){return i.nome;}).join(', ')+')':''); }).join('\n');
@@ -1114,7 +1146,10 @@ function lerPrint(files){
   }).catch(function(e){
     if(ctl.signal.aborted) return;
     toast((e&&e.erro)||'Não consegui ler o print agora. Tente de novo.');
-  }).then(function(){ S.lendo=false; printCtl=null; render(); });
+  }).then(function(){
+    S.lendo=false; printCtl=null; render();
+    var rv=document.querySelector('.revisao'); if(rv) rv.closest('.secao').scrollIntoView({behavior:'smooth',block:'start'});
+  });
 }
 function lancarRevisao(){
   if(!exigirDb() || !S.revisao) return;
@@ -1126,7 +1161,7 @@ function lancarRevisao(){
 document.addEventListener('dragover',function(ev){ var z=ev.target.closest&&ev.target.closest('#print-zona'); if(z){ ev.preventDefault(); z.classList.add('sobre'); } });
 document.addEventListener('dragleave',function(ev){ var z=ev.target.closest&&ev.target.closest('#print-zona'); if(z) z.classList.remove('sobre'); });
 document.addEventListener('drop',function(ev){ var z=ev.target.closest&&ev.target.closest('#print-zona'); if(z){ ev.preventDefault(); z.classList.remove('sobre'); if(ev.dataTransfer.files.length) lerPrint(ev.dataTransfer.files); } });
-document.addEventListener('paste',function(ev){ if(S.view!=='lancamentos'||!S.imgOk) return; var fs=Array.prototype.filter.call((ev.clipboardData&&ev.clipboardData.files)||[],function(f){return /^image\//.test(f.type);}); if(fs.length){ ev.preventDefault(); lerPrint(fs); } });
+document.addEventListener('paste',function(ev){ if(!S.imgOk||!S.cfg) return; var fs=Array.prototype.filter.call((ev.clipboardData&&ev.clipboardData.files)||[],function(f){return /^image\//.test(f.type);}); if(fs.length){ ev.preventDefault(); lerPrint(fs); } });
 
 /* ---------- Tema ---------- */
 var TEMAS=['auto','light','dark'], NOMES_TEMA={auto:'automático',light:'claro',dark:'escuro'};
