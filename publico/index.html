@@ -340,6 +340,84 @@ tr.inativo td{color:var(--tx3)}
   .lc{grid-template-columns:minmax(0,1fr) auto auto}
   .lc .lc-forma{display:none}
 }
+
+/* ===== Visual 2 (o mesmo do Ora et Labora): cor do tempo litúrgico ou dourado fixo, menos bordas, título em serifa ===== */
+:root{--ac:#9C7412;--ac-tx:#86620C;--ac-suave:rgba(156,116,18,.12);--ac-sobre:#FFFFFF;--sombra-leve:0 1px 2px rgba(20,20,18,.05)}
+:root[data-lit="ouro"],:root[data-lit="branco"]{--ac:#9C7412;--ac-tx:#86620C;--ac-suave:rgba(156,116,18,.12);--ac-sobre:#FFFFFF}
+:root[data-lit="verde"]{--ac:#2F7A4B;--ac-tx:#2A6E43;--ac-suave:rgba(47,122,75,.12);--ac-sobre:#FFFFFF}
+:root[data-lit="roxo"]{--ac:#6B46A8;--ac-tx:#5E3D96;--ac-suave:rgba(107,70,168,.12);--ac-sobre:#FFFFFF}
+:root[data-lit="rosa"]{--ac:#B04F7E;--ac-tx:#9C4570;--ac-suave:rgba(176,79,126,.11);--ac-sobre:#FFFFFF}
+:root[data-lit="vermelho"]{--ac:#B3322A;--ac-tx:#A02C25;--ac-suave:rgba(179,50,42,.10);--ac-sobre:#FFFFFF}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406;--sombra-leve:none}
+  :root:not([data-theme="light"])[data-lit="ouro"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406}
+  :root:not([data-theme="light"])[data-lit="branco"]{--ac:#F1ECDD;--ac-tx:#E5C778;--ac-suave:rgba(229,199,120,.14);--ac-sobre:#1A1A18}
+  :root:not([data-theme="light"])[data-lit="verde"]{--ac:#5FB37E;--ac-tx:#7CC896;--ac-suave:rgba(95,179,126,.14);--ac-sobre:#06140B}
+  :root:not([data-theme="light"])[data-lit="roxo"]{--ac:#A688DB;--ac-tx:#B9A0E6;--ac-suave:rgba(166,136,219,.15);--ac-sobre:#140B22}
+  :root:not([data-theme="light"])[data-lit="rosa"]{--ac:#E592B8;--ac-tx:#EFA9C9;--ac-suave:rgba(229,146,184,.14);--ac-sobre:#22091A}
+  :root:not([data-theme="light"])[data-lit="vermelho"]{--ac:#E2685F;--ac-tx:#EE8A82;--ac-suave:rgba(226,104,95,.14);--ac-sobre:#1E0806}
+}
+:root[data-theme="dark"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406;--sombra-leve:none}
+:root[data-theme="dark"][data-lit="ouro"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406}
+:root[data-theme="dark"][data-lit="branco"]{--ac:#F1ECDD;--ac-tx:#E5C778;--ac-suave:rgba(229,199,120,.14);--ac-sobre:#1A1A18}
+:root[data-theme="dark"][data-lit="verde"]{--ac:#5FB37E;--ac-tx:#7CC896;--ac-suave:rgba(95,179,126,.14);--ac-sobre:#06140B}
+:root[data-theme="dark"][data-lit="roxo"]{--ac:#A688DB;--ac-tx:#B9A0E6;--ac-suave:rgba(166,136,219,.15);--ac-sobre:#140B22}
+:root[data-theme="dark"][data-lit="rosa"]{--ac:#E592B8;--ac-tx:#EFA9C9;--ac-suave:rgba(229,146,184,.14);--ac-sobre:#22091A}
+:root[data-theme="dark"][data-lit="vermelho"]{--ac:#E2685F;--ac-tx:#EE8A82;--ac-suave:rgba(226,104,95,.14);--ac-sobre:#1E0806}
+
+.app{box-shadow:inset 0 3px 0 var(--ac)}
+.principal{background:transparent;border:0;border-radius:0;margin:0;padding-top:32px}
+.painel,.cartao{border:0;border-radius:16px;box-shadow:var(--sombra-leve)}
+.lado{border:0;border-radius:18px;box-shadow:var(--sombra-leve)}
+.cel-card{border-top-color:var(--bg)}
+@media (max-width:1180px){.cel-card{border-left-color:var(--bg)}}
+.forma{background:var(--painel);border:0;border-radius:16px;box-shadow:var(--sombra-leve)}
+.cartao .forma{background:var(--sup);box-shadow:none}
+.painel.fundo{background:var(--painel)}
+.faixa.cinza{background:var(--painel);box-shadow:var(--sombra-leve)}
+.saudacao{font-family:var(--f-serif);font-weight:400;font-size:clamp(2rem,3.4vw,2.75rem);letter-spacing:-.01em;line-height:1.05}
+.saudacao em{font-style:normal;font-size:1em}
+.topo{align-items:flex-start}
+.topo-txt{display:grid;gap:6px;min-width:0}
+.lit{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.86rem;color:var(--tx2)}
+.lit-cor{width:9px;height:9px;border-radius:50%;background:var(--lc,#3f8f5b);flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.lit-sep{color:var(--tx3)}
+.lit b{font-weight:500;color:var(--tx)}
+.tag{border-radius:999px;padding:0 9px;background:color-mix(in srgb,var(--t) 17%,transparent);color:color-mix(in srgb,var(--t) 70%,var(--tx))}
+.tag.cinza{background:var(--sup-2);color:var(--tx2)}
+.nav button[aria-current="true"]{background:var(--ac-suave);color:var(--ac-tx);font-weight:600}
+.nav button[aria-current="true"] .qtd{color:var(--ac-tx)}
+.btn-escuro{background:var(--ac);color:var(--ac-sobre)}
+.btn-escuro:hover{opacity:1;filter:brightness(1.07)}
+.circ:hover{border-color:var(--ac);color:var(--ac)}
+.circ.on{background:var(--ac);border-color:var(--ac);color:var(--ac-sobre)}
+.circ:active{transform:scale(.85)}
+.seg{border-color:transparent}
+.chip[aria-pressed="true"]{border-color:var(--ac);background:var(--ac-suave);color:var(--ac-tx)}
+.barra i,.barra.ouro i{background:var(--ac)}
+.barra.alerta i{background:var(--alerta)}
+.banner{border:0;--banner:var(--painel);--banner-tx:var(--tx);--banner-tx2:var(--tx2);box-shadow:var(--sombra-leve)}
+.banner .btn{background:var(--ac);color:var(--ac-sobre)}
+.banner-prog{background:var(--sup-2)}
+.banner-prog i{background:var(--ac)}
+.anel-dia{display:flex;align-items:center;gap:14px;padding:2px 0 6px}
+.anel-dia .meio{position:relative;width:58px;height:58px;flex:none}
+.anel-dia svg{width:58px;height:58px}
+.anel-dia .trilho{stroke:var(--sup-2)}
+.anel-dia .feito{stroke:var(--ac);transition:stroke-dashoffset .6s ease}
+.anel-dia.passou .feito{stroke:var(--alerta)}
+.anel-dia .meio i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-weight:600;font-size:.82rem;font-variant-numeric:tabular-nums}
+.anel-dia b{font-weight:600;font-size:1rem;display:block}
+.anel-dia span{font-size:.84rem;color:var(--tx2)}
+@media (max-width:1180px){.numeros .anel-dia{grid-column:1/-1}}
+.aj-cores{display:flex;gap:10px;flex-wrap:wrap}
+.aj-cor{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--sup);cursor:pointer;border:2px solid transparent;font-size:.9rem;font-weight:400;color:var(--tx)}
+.aj-cor:has(input:checked){border-color:var(--ac)}
+.aj-cor input{accent-color:var(--ac)}
+.aj-cor .bolas{display:inline-flex;gap:3px}
+.aj-cor .bolas i{width:12px;height:12px;border-radius:50%;display:block}
+.aj-cor small{color:var(--tx2)}
+.ent-forma{border:0;box-shadow:var(--sombra-leve)}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -358,7 +436,7 @@ tr.inativo td{color:var(--tx3)}
   </aside>
   <main class="principal">
     <div class="topo">
-      <h1 class="saudacao" id="saudacao">Olá</h1>
+      <div class="topo-txt"><h1 class="saudacao" id="saudacao">Olá</h1><p class="lit" id="lit-hoje"></p></div>
       <div class="topo-dir">
         <div class="mes" role="group" aria-label="Mês">
           <button class="icone-btn" data-act="mes" data-n="-1" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
@@ -399,6 +477,106 @@ var BEM_FEITO = [
   ['Quem é fiel no pouco também é fiel no muito.','Lucas 16,10'],
   ['Juntem os mantimentos destes anos bons.','Gênesis 41,35']
 ];
+
+/* ---------- Calendário litúrgico (mesma regra do Ora et Labora) ---------- */
+var LIT = (function(){
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function iso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function paraData(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2],12); }
+  var CORES_LIT = {verde:'#3f8f5b', roxo:'#7a4fb0', rosa:'#d97fa6', vermelho:'#c63d3d', branco:'#e8d49a'};
+  /* [mês-dia, nome, grau (S solenidade, F festa, M memória, m memória facultativa), cor, santo visitante, trecho do autor nas citações] */
+  var FIXAS = [
+    ['01-01','Santa Maria, Mãe de Deus','S','branco'],['01-02','São Basílio e São Gregório Nazianzeno','M','branco'],['01-03','Santíssimo Nome de Jesus','m','branco'],
+    ['01-17','Santo Antão','M','branco'],['01-20','São Sebastião','m','vermelho'],['01-21','Santa Inês','M','vermelho'],['01-24','São Francisco de Sales','M','branco','','Francisco de Sales'],
+    ['01-25','Conversão de São Paulo','F','branco','','São Paulo'],['01-26','São Timóteo e São Tito','M','branco'],['01-28','São Tomás de Aquino','M','branco','','Tomás de Aquino'],
+    ['01-31','São João Bosco','M','branco','bosco','João Bosco'],['02-02','Apresentação do Senhor','F','branco'],['02-03','São Brás','m','vermelho'],['02-05','Santa Águeda','M','vermelho'],
+    ['02-10','Santa Escolástica','M','branco','','Bento'],['02-11','Nossa Senhora de Lourdes','m','branco'],['02-14','São Cirilo e São Metódio','M','branco'],['02-22','Cátedra de São Pedro','F','branco'],
+    ['03-07','Santa Perpétua e Santa Felicidade','M','vermelho'],['03-19','São José, esposo de Maria','S','branco','jose'],['03-25','Anunciação do Senhor','S','branco'],
+    ['04-23','São Jorge','m','vermelho'],['04-25','São Marcos','F','vermelho'],['04-29','Santa Catarina de Sena','M','branco'],
+    ['05-01','São José Operário','m','branco','jose'],['05-02','Santo Atanásio','M','branco'],['05-03','São Filipe e São Tiago','F','vermelho'],['05-13','Nossa Senhora de Fátima','m','branco'],
+    ['05-14','São Matias','F','vermelho'],['05-26','São Filipe Néri','M','branco','','Filipe Néri'],['05-31','Visitação de Nossa Senhora','F','branco'],
+    ['06-01','São Justino','M','vermelho'],['06-13','Santo Antônio','M','branco'],['06-21','São Luís Gonzaga','M','branco'],['06-24','Natividade de São João Batista','S','branco'],
+    ['06-26','São Josemaria Escrivá','m','branco','','Josemaria'],['06-28','Santo Irineu','M','vermelho','','Irineu'],['06-29','São Pedro e São Paulo','S','vermelho','','São Paulo'],
+    ['07-03','São Tomé','F','vermelho'],['07-04','São Pier Giorgio Frassati','m','branco','','Frassati'],['07-11','São Bento','M','branco','bento','Bento'],['07-16','Nossa Senhora do Carmo','m','branco'],
+    ['07-22','Santa Maria Madalena','F','branco'],['07-25','São Tiago','F','vermelho'],['07-26','São Joaquim e Sant’Ana','M','branco'],['07-29','Santa Marta, Maria e Lázaro','M','branco'],
+    ['07-31','Santo Inácio de Loyola','M','branco','','Inácio'],['08-01','Santo Afonso de Ligório','M','branco'],['08-04','São João Maria Vianney','M','branco','','Vianney'],
+    ['08-06','Transfiguração do Senhor','F','branco'],['08-08','São Domingos','M','branco'],['08-10','São Lourenço','F','vermelho'],['08-11','Santa Clara','M','branco'],
+    ['08-14','São Maximiliano Kolbe','M','vermelho','','Kolbe'],['08-15','Assunção de Nossa Senhora','S','branco'],['08-22','Nossa Senhora Rainha','M','branco'],
+    ['08-24','São Bartolomeu','F','vermelho'],['08-27','Santa Mônica','M','branco'],['08-28','Santo Agostinho','M','branco','','Agostinho'],['08-29','Martírio de São João Batista','M','vermelho'],
+    ['09-03','São Gregório Magno','M','branco'],['09-05','Santa Teresa de Calcutá','m','branco','madre','Calcutá'],['09-08','Natividade de Nossa Senhora','F','branco'],
+    ['09-13','São João Crisóstomo','M','branco'],['09-14','Exaltação da Santa Cruz','F','vermelho'],['09-15','Nossa Senhora das Dores','M','branco'],['09-21','São Mateus','F','vermelho'],
+    ['09-23','São Pio de Pietrelcina','M','branco','pio','Pio de Pietrelcina'],['09-27','São Vicente de Paulo','M','branco','','Vicente de Paulo'],
+    ['09-29','São Miguel, São Gabriel e São Rafael','F','branco'],['09-30','São Jerônimo','M','branco','','Jerônimo'],
+    ['10-01','Santa Teresinha do Menino Jesus','M','branco','teresinha','Teresinha'],['10-02','Santos Anjos da Guarda','M','branco'],['10-04','São Francisco de Assis','M','branco','francisco'],
+    ['10-05','Santa Faustina Kowalska','m','branco','','Faustina'],['10-07','Nossa Senhora do Rosário','M','branco'],['10-12','Nossa Senhora Aparecida, Padroeira do Brasil','S','branco'],
+    ['10-15','Santa Teresa d’Ávila','M','branco','','Teresa d’Ávila'],['10-17','Santo Inácio de Antioquia','M','vermelho'],['10-18','São Lucas','F','vermelho'],
+    ['10-22','São João Paulo II','m','branco','','João Paulo II'],['10-28','São Simão e São Judas Tadeu','F','vermelho'],
+    ['11-01','Todos os Santos','S','branco'],['11-02','Todos os Fiéis Defuntos','','roxo'],['11-04','São Carlos Borromeu','M','branco'],['11-09','Dedicação da Basílica de Latrão','F','branco'],
+    ['11-11','São Martinho de Tours','M','branco'],['11-21','Apresentação de Nossa Senhora','M','branco'],['11-22','Santa Cecília','M','vermelho'],['11-30','Santo André','F','vermelho'],
+    ['12-03','São Francisco Xavier','M','branco'],['12-08','Imaculada Conceição de Nossa Senhora','S','branco'],['12-12','Nossa Senhora de Guadalupe','F','branco'],
+    ['12-13','Santa Luzia','M','vermelho'],['12-14','São João da Cruz','M','branco','','João da Cruz'],['12-25','Natal do Senhor','S','branco'],['12-26','Santo Estêvão','F','vermelho'],
+    ['12-27','São João Evangelista','F','branco'],['12-28','Santos Inocentes','F','vermelho']
+  ];
+  FIXAS = FIXAS.concat([['10-16','Santa Edwiges e Santa Margarida Maria Alacoque','m','branco'],['10-19','São Paulo da Cruz','m','branco'],['10-23','São João de Capistrano','m','branco'],['10-24','Santo Antônio Maria Claret','m','branco'],['10-25','Santo Antônio de Sant’Ana Galvão','M','branco'],['11-03','São Martinho de Lima','m','branco'],['11-10','São Leão Magno','M','branco'],['11-12','São Josafá','M','vermelho'],['11-15','Santo Alberto Magno','m','branco'],['11-16','Santa Margarida da Escócia e Santa Gertrudes','m','branco'],['11-17','Santa Isabel da Hungria','M','branco'],['11-18','Dedicação das Basílicas de São Pedro e São Paulo','m','branco'],['11-23','São Clemente I e São Columbano','m','vermelho'],['11-24','Santo André Dung-Lac e companheiros','M','vermelho'],['11-25','Santa Catarina de Alexandria','m','vermelho'],['12-04','São João Damasceno','m','branco'],['12-06','São Nicolau','m','branco'],['12-07','Santo Ambrósio','M','branco'],['12-09','São Juan Diego','m','branco'],['12-10','Nossa Senhora de Loreto','m','branco'],['12-11','São Dâmaso I','m','branco'],['12-29','São Tomás Becket','m','vermelho'],['12-31','São Silvestre I','m','branco']]);
+  var FIXAS_MAP = {}; FIXAS.forEach(function(f){ FIXAS_MAP[f[0]] = {nome:f[1], grau:f[2], cor:f[3], santo:f[4]||'', autor:f[5]||''}; });
+  var ORD = ['','1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª','14ª','15ª','16ª','17ª','18ª','19ª','20ª','21ª','22ª','23ª','24ª','25ª','26ª','27ª','28ª','29ª','30ª','31ª','32ª','33ª','34ª'];
+  var DIAS_SEM = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  function dataDe(a,m,d){ return new Date(a,m,d,12); }
+  function mais(d, n){ var x = new Date(d); x.setDate(x.getDate()+n); return x; }
+  function difDias(a, b){ return Math.round((b - a)/864e5); }
+  function domingoDe(d){ return mais(d, -d.getDay()); }
+  function pascoa(a){
+    var b=a%19, c=Math.floor(a/100), d=a%100, e=Math.floor(c/4), f=c%4, g=Math.floor((c+8)/25), h=Math.floor((c-g+1)/3), i=(19*b+c-e-h+15)%30,
+      k=Math.floor(d/4), l=d%4, m=(32+2*f+2*k-i-l)%7, n=Math.floor((b+11*i+22*m)/451), mes=Math.floor((i+m-7*n+114)/31), dia=((i+m-7*n+114)%31)+1;
+    return dataDe(a, mes-1, dia);
+  }
+  var LIT_ANO = {};
+  function anoLit(a){
+    if (LIT_ANO[a]) return LIT_ANO[a];
+    var p = pascoa(a), dez3 = dataDe(a,11,3), adv = mais(dez3, -dez3.getDay()), epi = dataDe(a,0,2);
+    while (epi.getDay()!==0) epi = mais(epi,1);
+    var bat = epi.getDate()>=7 ? mais(epi,1) : mais(epi,7), mov = {};
+    function M(n, dt, grau, cor){ mov[iso(dt)] = {nome:n, grau:grau, cor:cor, santo:'', autor:''}; }
+    M('Epifania do Senhor', epi, 'S', 'branco'); M('Batismo do Senhor', bat, 'F', 'branco');
+    M('Quarta-feira de Cinzas', mais(p,-46), 'S', 'roxo'); M('Domingo de Ramos', mais(p,-7), 'S', 'vermelho'); M('Quinta-feira Santa', mais(p,-3), 'S', 'branco');
+    M('Sexta-feira da Paixão', mais(p,-2), 'S', 'vermelho'); M('Sábado Santo', mais(p,-1), 'S', 'roxo'); M('Domingo da Páscoa', p, 'S', 'branco');
+    M('Domingo da Divina Misericórdia', mais(p,7), 'S', 'branco'); M('Ascensão do Senhor', mais(p,42), 'S', 'branco'); M('Pentecostes', mais(p,49), 'S', 'vermelho');
+    M('Santíssima Trindade', mais(p,56), 'S', 'branco'); M('Corpus Christi', mais(p,60), 'S', 'branco'); M('Sagrado Coração de Jesus', mais(p,68), 'S', 'branco');
+    M('Imaculado Coração de Maria', mais(p,69), 'M', 'branco'); M('Nosso Senhor Jesus Cristo, Rei do Universo', mais(adv,-7), 'S', 'branco');
+    var dc = dataDe(a,11,25), sf = dc.getDay()===0 ? dataDe(a,11,30) : mais(dc, 7-dc.getDay()); M('Sagrada Família', sf, 'F', 'branco');
+    LIT_ANO[a] = {pascoa:p, cinzas:mais(p,-46), pent:mais(p,49), adv:adv, epi:epi, bat:bat, rei:mais(adv,-7), mov:mov};
+    return LIT_ANO[a];
+  }
+  function liturgia(ds){
+    var d = paraData(ds), a = d.getFullYear(), L = anoLit(a), dom = d.getDay()===0, t = {tempo:'', cor:'verde', semana:0, desc:'', fes:null};
+    if (d >= L.adv && d < dataDe(a,11,25)){ t.tempo = 'Advento'; t.cor = 'roxo'; t.semana = Math.floor(difDias(L.adv, d)/7)+1; if (dom && t.semana===3) t.cor = 'rosa'; }
+    else if (d >= dataDe(a,11,25) || d <= L.bat){ t.tempo = 'Natal'; t.cor = 'branco'; }
+    else if (d >= L.cinzas && d < L.pascoa){
+      t.tempo = 'Quaresma'; t.cor = 'roxo';
+      var q1 = mais(L.cinzas, 4); t.semana = d < q1 ? 0 : Math.floor(difDias(q1, d)/7)+1;
+      if (dom && t.semana===4) t.cor = 'rosa';
+      if (d >= mais(L.pascoa,-7)) t.tempo = 'Semana Santa';
+    }
+    else if (d >= L.pascoa && d <= L.pent){ t.tempo = 'Páscoa'; t.cor = 'branco'; t.semana = Math.floor(difDias(L.pascoa, d)/7)+1; }
+    else if (d < L.cinzas){ var ref = domingoDe(L.bat); t.tempo = 'Tempo Comum'; t.semana = Math.floor(difDias(ref, d)/7)+1; }
+    else { t.tempo = 'Tempo Comum'; t.semana = 34 - Math.round(difDias(domingoDe(d), L.rei)/7); }
+    t.desc = descLiturgia(t.tempo, t.semana, d.getDay());
+    var mov = L.mov[ds], fx = FIXAS_MAP[ds.slice(5)], fes = mov || null;
+    if (!fes && fx && (!dom || fx.grau==='S') && !(t.tempo==='Semana Santa' && fx.grau!=='S')) fes = fx;
+    if (fes){ t.fes = fes; t.cor = fes.cor; }
+    return t;
+  }
+  function descLiturgia(tempo, sem, wd){
+    var dom = wd===0;
+    var st = tempo==='Tempo Comum' ? ORD[sem]+' semana do Tempo Comum' : tempo==='Advento' ? ORD[sem]+' semana do Advento' : tempo==='Quaresma' ? (sem ? ORD[sem]+' semana da Quaresma' : 'Quaresma') : tempo==='Páscoa' ? ORD[sem]+' semana da Páscoa' : tempo==='Semana Santa' ? 'Semana Santa' : 'Tempo do Natal';
+    if (dom && sem && ['Tempo Comum','Advento','Quaresma','Páscoa'].indexOf(tempo)>=0) return ORD[sem].replace('ª','º')+' Domingo '+(tempo==='Tempo Comum' ? 'do Tempo Comum' : tempo==='Advento' ? 'do Advento' : tempo==='Quaresma' ? 'da Quaresma' : 'da Páscoa');
+    return DIAS_SEM[wd]+' · '+st;
+  }
+  function tituloFes(f){ if (!f) return ''; return f.grau==='F' ? 'Festa: '+f.nome : (f.grau==='M' || f.grau==='m') ? 'Memória: '+f.nome : f.nome; }
+  return {dia:liturgia, titulo:tituloFes, cores:CORES_LIT};
+})();
+
+function aplicarCorApp(){ try{ var ouro = S.cfg && S.cfg.corApp==='ouro'; document.documentElement.setAttribute('data-lit', ouro ? 'ouro' : (LIT.dia(hoje()).cor||'verde')); }catch(e){} }
 
 /* ---------- Utilidades ---------- */
 var BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
@@ -595,6 +773,9 @@ function render(){
   document.getElementById('mes-nome').textContent = nomeMes(S.mes);
   var h=new Date().getHours();
   document.getElementById('saudacao').innerHTML = (h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+', <em>'+esc(((S.usuario&&S.usuario.nome)||'').split(' ')[0])+'</em>';
+  aplicarCorApp();
+  var lt=LIT.dia(hoje());
+  document.getElementById('lit-hoje').innerHTML='<span class="lit-cor" style="--lc:'+LIT.cores[lt.cor]+'" title="Cor litúrgica: '+esc(lt.cor)+'"></span><span>'+esc(lt.desc)+'</span>'+(lt.fes?'<span class="lit-sep">·</span><b>'+esc(LIT.titulo(lt.fes))+'</b>':'');
   renderNav();
   var v=document.getElementById('vista');
   if(!S.cfgOk && !S.semDb){ v.innerHTML='<div class="carregando">'+cena({cheias:0,label:'Celeiro vazio'})+'<p>Abrindo o celeiro…</p></div>'; return; }
@@ -627,7 +808,7 @@ var bannerTimer=null, citIdx=Math.floor(Math.random()*CITACOES.length);
 function htmlBanner(){
   var c=CITACOES[citIdx%CITACOES.length];
   return '<section class="banner" aria-label="Citação"><div class="banner-texto"><div class="cit" id="cit"><blockquote>'+esc(c[0])+'</blockquote><p class="autor">'+esc(c[1])+'</p></div>'+
-    '<button class="btn btn-p" data-act="novo">Lançar gasto de hoje</button></div><div class="banner-arte" aria-hidden="true">'+cena({cheias:Math.round(12*progressoFamilia()),cls:'iso-escuro',semChao:false,label:''})+'</div><div class="banner-prog"><i id="prog"></i></div></section>';
+    '<button class="btn btn-p" data-act="novo">Lançar gasto de hoje</button></div><div class="banner-arte" aria-hidden="true">'+cena({cheias:Math.round(12*progressoFamilia()),cls:'',semChao:false,label:''})+'</div><div class="banner-prog"><i id="prog"></i></div></section>';
 }
 function iniciarBanner(){
   clearInterval(bannerTimer);
@@ -648,7 +829,11 @@ function vInicio(){
   var metaGuardar=soma(fundos(),function(f){return num(f.mensal);});
   var famF=fundos().filter(function(x){return x.tipo==='familia';})[0];
   var cheias=Math.round(12*progressoFamilia());
-  var lado='<aside class="lado"><div class="numeros">'+
+  var fracMes = prev ? Math.min(1, gasto/prev) : 0, circ = 2*Math.PI*24, passou = prev && gasto>prev;
+  var hj=hoje(), diasRest = S.mes===ymDe(hj) ? diasNoMes(S.mes)-Number(hj.slice(8,10)) : (S.mes>ymDe(hj) ? diasNoMes(S.mes) : 0);
+  var anel='<div class="anel-dia'+(passou?' passou':'')+'"><div class="meio"><svg viewBox="0 0 58 58" aria-hidden="true"><circle class="trilho" cx="29" cy="29" r="24" fill="none" stroke-width="6"/><circle class="feito" cx="29" cy="29" r="24" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*(1-fracMes)).toFixed(1)+'" transform="rotate(-90 29 29)"/></svg><i>'+(prev?Math.round(gasto/prev*100):0)+'%</i></div>'+
+    '<div><b>Seu mês</b><span>'+(!prev?'Defina o orçamento nas caixinhas':passou?'Passou '+brl0(gasto-prev)+' do previsto':'Restam '+brl0(prev-gasto)+(diasRest?' para '+diasRest+' dia'+(diasRest===1?'':'s'):''))+'</span></div></div>';
+  var lado='<aside class="lado"><div class="numeros">'+anel+
     '<div class="num'+(gasto>prev?' alerta':'')+'"><small>Gasto em '+nomeMesCurto(S.mes)+'</small><b>'+brl0(gasto)+'</b><span>de '+brl0(prev)+' previstos'+(modoIdeal()?' (ideal)':'')+'</span></div>'+
     '<div class="num"><small>Fatura aberta</small><b>'+brl0(fatura)+'</b><span>vence '+dataBR(dataVencto(ymV))+'</span></div>'+
     '<div class="num"><small>Guardado no mês</small><b>'+brl0(guardado)+'</b><span>meta de '+brl0(metaGuardar)+'</span></div>'+
@@ -900,7 +1085,11 @@ function vExame(){
 function campoCfg(rot,path,valor,suf){ return '<label>'+rot+'<input class="campo num" data-cfg="'+path+'" data-tipo="num" value="'+String(num(valor)).replace('.',',')+'" inputmode="decimal">'+(suf?'<small class="nota">'+suf+'</small>':'')+'</label>'; }
 function vAjustes(){
   var c=cfg();
+  var ltA=LIT.dia(hoje()), ouroA=c.corApp==='ouro';
   return '<div class="pagina"><div><h2 class="h2"><em>Ajustes</em></h2><p class="intro">Os números que sustentam os cálculos. Mude quando algo mudar de verdade.</p></div>'+
+    '<div class="forma"><h3>Cor do <em>app</em></h3><div class="aj-cores">'+
+      '<label class="aj-cor"><input type="radio" name="cor-app" value="lit"'+(ouroA?'':' checked')+'><span class="bolas"><i style="background:#2F7A4B"></i><i style="background:#6B46A8"></i><i style="background:#D6AE4F"></i><i style="background:#B3322A"></i></span><span><b>Seguir o tempo litúrgico</b><br><small>Hoje: '+esc(ltA.cor)+'</small></span></label>'+
+      '<label class="aj-cor"><input type="radio" name="cor-app" value="ouro"'+(ouroA?' checked':'')+'><span class="bolas"><i style="background:#D6AE4F"></i></span><span><b>Dourado fixo</b><br><small>Não muda durante o ano</small></span></label></div></div>'+
     '<div class="forma"><h3>Cartão de crédito</h3><div class="campos">'+campoCfg('Dia em que a fatura fecha','cartao.fecha',c.cartao.fecha)+campoCfg('Dia do vencimento','cartao.vence',c.cartao.vence)+'</div></div>'+
     '<div class="forma"><h3>Pró-labore</h3><div class="campos">'+campoCfg('Custo da casa','proLabore.vida',c.proLabore.vida)+campoCfg('Para guardar','proLabore.guardar',c.proLabore.guardar,'20% do pró-labore é o mínimo saudável')+'</div></div>'+
     '<div class="forma"><h3>Crown</h3><div class="campos">'+campoCfg('Imposto hoje (%)','impostoPct',c.impostoPct,'MEI: deixe 0')+campoCfg('Imposto do Simples (%)','impostoSimuladoPct',c.impostoSimuladoPct)+campoCfg('Reserva mínima (%)','reservaEmpresa.minPct',c.reservaEmpresa.minPct)+campoCfg('Reserva realista (%)','reservaEmpresa.metaPct',c.reservaEmpresa.metaPct)+campoCfg('Reserva ideal (%)','reservaEmpresa.idealPct',c.reservaEmpresa.idealPct)+'</div></div>'+
@@ -1053,6 +1242,7 @@ document.addEventListener('keydown',function(ev){
 
 document.addEventListener('change',function(ev){
   var el=ev.target;
+  if(el.name==='cor-app' && S.cfg){ S.cfg.corApp=el.value; salvarCfg(); render(); return; }
   if(el.dataset.cfg){
     var v = el.dataset.tipo==='num' ? num(el.value) : el.value;
     setPath(S.cfg, el.dataset.cfg, v); salvarCfg(); pedirRenderDepois(); return;
@@ -1401,6 +1591,7 @@ function entrar(usuario){
   assinarLanc(); assinarReceb();
   db.iniciar().catch(function(e){ document.getElementById('vista').innerHTML='<div class="pagina"><div class="carregando"><p>'+esc(e.message||'Não consegui carregar os dados.')+'</p><button class="btn btn-escuro" data-act="recarregar">Tentar de novo</button></div></div>'; });
 }
+aplicarCorApp();
 document.getElementById('ent-arte').innerHTML=cena({cheias:0,label:''});
 api('GET','/api/estado').then(function(e){
   S.imgOk=!!e.print; S.semDisco=!!e.semDisco;
