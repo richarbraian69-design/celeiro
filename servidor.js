@@ -364,6 +364,109 @@ app.post('/api/importar', exigir, exigirAdmin, rota((req, res) => {
   res.json({ ok: true, registros: Object.keys(novos).length });
 }));
 
+/* ---------- Porta do JARVIS: o assistente do Mac consulta o mês e lança gastos sem abrir a tela ----------
+ * Liga com a variável JARVIS_TOKEN_SHA256 no Railway: a impressão digital (SHA-256, em hex) da chave que
+ * fica só no Mac do JARVIS. Sem ela, nada disto existe. Os cálculos repetem as "Regras de cálculo" da tela.
+ * De propósito, não apaga nem altera nada: só lê e lança gasto novo (com desfazer pela tela, como sempre). */
+const JARVIS_SHA = String(process.env.JARVIS_TOKEN_SHA256 || '').trim().toLowerCase();
+const JARVIS_HASH = /^[0-9a-f]{64}$/.test(JARVIS_SHA) ? Buffer.from(JARVIS_SHA, 'hex') : null;
+function exigirJarvis(req, res, next) {
+  if (!JARVIS_HASH) return res.status(404).type('text').send('Página não encontrada.');
+  const m = /^Bearer (.+)$/.exec(req.get('Authorization') || '');
+  if (!m || !crypto.timingSafeEqual(crypto.createHash('sha256').update(m[1]).digest(), JARVIS_HASH)) {
+    try { limitarLogin(req); } catch (e) { return res.status(429).json({ erro: e.message }); }
+    falhouLogin(req);
+    return res.status(401).json({ erro: 'Chave do JARVIS inválida.' });
+  }
+  next();
+}
+function num(v) {
+  if (typeof v === 'number') return v;
+  let s = String(v || '').replace(/R\$|\s/g, '');
+  if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+  const n = parseFloat(s); return isFinite(n) ? n : 0;
+}
+const soma = (l, f) => l.reduce((t, x) => t + f(x), 0);
+const ymDe = iso => String(iso).slice(0, 7);
+const pad = n => String(n).padStart(2, '0');
+function addMes(ym, n) { let [y, m] = ym.split('-').map(Number); m += n; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return y + '-' + pad(m); }
+const r2 = v => Math.round(v * 100) / 100;
+function colecao(col) { const l = []; for (const p in db.docs) if (p.startsWith(col + '/')) l.push(Object.assign({}, db.docs[p].d, { id: p.slice(col.length + 1) })); return l; }
+function estadoCeleiro() {
+  const cfg = (db.docs['config/geral'] || {}).d;
+  if (!cfg) throw new Erro('O Celeiro ainda não tem orçamento.', 503);
+  const lanc = colecao('lancamentos').map(l => Object.assign(l, { valor: num(l.valor) })), movs = colecao('movimentos').map(m => Object.assign(m, { valor: num(m.valor) }));
+  const ideal = cfg.modo === 'ideal', valorItem = it => (ideal && it.ideal != null) ? num(it.ideal) : num(it.valor);
+  const caixinhas = cfg.caixinhas || [], fundos = cfg.fundos || [];
+  const lancDoMes = ym => lanc.filter(l => ymDe(l.data) === ym);
+  const depositosNoMes = (f, ym) => soma(movs.filter(m => m.fundo === f && ymDe(m.data) === ym && m.valor > 0), m => m.valor);
+  const prevCx = cx => soma(cx.itens || [], valorItem);
+  const gastoCx = (cx, ym) => soma(lancDoMes(ym).filter(l => l.caixinha === cx.id), l => l.valor) + soma((cx.itens || []).filter(it => it.paraFundo), it => Math.min(depositosNoMes(it.paraFundo, ym), valorItem(it)));
+  const acharCx = id => caixinhas.find(c => c.id === id);
+  const fecha = num((cfg.cartao || {}).fecha) || 2, vence = num((cfg.cartao || {}).vence) || 9;
+  const venctoDe = iso => { const p = iso.split('-').map(Number), ym = p[0] + '-' + pad(p[1]); return p[2] > fecha ? addMes(ym, 1) : ym; };
+  return { cfg, lanc, movs, caixinhas, fundos, lancDoMes, depositosNoMes, prevCx, gastoCx, acharCx, venctoDe, vence, saldoFundo: f => soma(movs.filter(m => m.fundo === f), m => m.valor) };
+}
+function linhaLanc(l, e) { return { id: l.id, data: l.data, desc: l.desc || '', valor: r2(l.valor), forma: l.forma || '', caixinha: (e.acharCx(l.caixinha) || {}).nome || 'Sem caixinha', por: l.por || '' }; }
+function acharCaixinha(e, nome) {
+  const n = normNome(nome); if (!n) throw new Erro('Diga a caixinha do gasto.');
+  let l = e.caixinhas.filter(c => normNome(c.nome) === n);
+  if (!l.length && n.length >= 3) l = e.caixinhas.filter(c => normNome(c.nome).includes(n));
+  if (l.length === 1) return l[0];
+  throw new Erro(l.length ? 'Caixinha "' + nome + '" é ambígua: ' + l.map(c => c.nome).join(', ') + '.' : 'Caixinha "' + nome + '" não encontrada. Existem: ' + e.caixinhas.map(c => c.nome).join(', ') + '.', l.length ? 409 : 404);
+}
+const jarvis = express.Router();
+jarvis.use(exigirJarvis);
+jarvis.get('/contexto', rota((req, res) => {
+  const e = estadoCeleiro();
+  res.json({ hoje: hojeNoFuso(), modo: e.cfg.modo || 'real', caixinhas: e.caixinhas.map(c => c.nome), reservas: e.fundos.map(f => f.nome), formas: ['credito', 'debito', 'pix', 'boleto', 'dinheiro'] });
+}));
+jarvis.get('/resumo', rota((req, res) => {
+  const e = estadoCeleiro(), hoje = hojeNoFuso(), ym = /^\d{4}-\d{2}$/.test(req.query.mes || '') ? req.query.mes : ymDe(hoje);
+  const caixinhas = e.caixinhas.map(cx => { const p = e.prevCx(cx), g = e.gastoCx(cx, ym); return { nome: cx.nome, previsto: r2(p), gasto: r2(g), restante: r2(p - g), passou: p > 0 && g > p }; });
+  const semCx = soma(e.lancDoMes(ym).filter(l => !e.acharCx(l.caixinha)), l => l.valor);
+  const previsto = soma(caixinhas, c => c.previsto), gasto = soma(caixinhas, c => c.gasto) + semCx;
+  const ymV = e.venctoDe(hoje), fatura = soma(e.lanc.filter(l => l.forma === 'credito' && e.venctoDe(String(l.data)) === ymV), l => l.valor);
+  const reservas = e.fundos.map(f => ({ nome: f.nome, saldo: r2(e.saldoFundo(f.id)), meta: num(f.meta) || null, mensal: num(f.mensal) || null,
+    noMes: r2(soma(e.movs.filter(m => m.fundo === f.id && ymDe(m.data) === ym), m => m.valor)), abaixoDoPiso: !!(f.piso && e.saldoFundo(f.id) < num(f.piso)) }));
+  const receb = (db.docs['recebimentos/' + ym] || {}).d || { itens: {}, avulsos: [] };
+  let fatPrev = 0, fatRec = 0, pendentes = [];
+  colecao('clientes').filter(c => c.ativo !== false).forEach(c => {
+    const st = (receb.itens || {})[c.id] || 'pendente'; if (st === 'isento') return;
+    fatPrev += num(c.valor); if (st === 'recebido') fatRec += num(c.valor); else pendentes.push({ nome: c.nome, valor: r2(num(c.valor)) });
+  });
+  (receb.avulsos || []).forEach(a => { fatPrev += num(a.valor); if (a.recebido) fatRec += num(a.valor); });
+  res.json({ hoje, mes: ym, previsto: r2(previsto), gasto: r2(gasto), restante: r2(previsto - gasto), semCaixinha: r2(semCx),
+    caixinhasPassaram: caixinhas.filter(c => c.passou).map(c => c.nome), caixinhas,
+    fatura: { vencimento: ymV + '-' + pad(e.vence), valor: r2(fatura) },
+    reservas, guardadoNoMes: r2(soma(reservas, f => f.noMes)), metaGuardar: r2(soma(e.fundos, f => num(f.mensal))),
+    crown: { previsto: r2(fatPrev), recebido: r2(fatRec), aReceber: pendentes.sort((a, b) => b.valor - a.valor) },
+    ultimos: e.lancDoMes(ym).sort((a, b) => String(b.data).localeCompare(String(a.data)) || String(b.criado || '').localeCompare(String(a.criado || ''))).slice(0, 8).map(l => linhaLanc(l, e)) });
+}));
+jarvis.get('/lancamentos', rota((req, res) => {
+  const e = estadoCeleiro(), q = req.query, ym = /^\d{4}-\d{2}$/.test(q.mes || '') ? q.mes : ymDe(hojeNoFuso());
+  let l = e.lancDoMes(ym);
+  if (q.caixinha) { const cx = acharCaixinha(e, q.caixinha); l = l.filter(x => x.caixinha === cx.id); }
+  if (q.busca) { const b = normNome(q.busca); l = l.filter(x => normNome(x.desc).includes(b)); }
+  l.sort((a, b) => String(b.data).localeCompare(String(a.data)));
+  const limite = Math.max(1, Math.min(300, parseInt(q.limite, 10) || 60));
+  res.json({ mes: ym, total: l.length, soma: r2(soma(l, x => x.valor)), lancamentos: l.slice(0, limite).map(x => linhaLanc(x, e)) });
+}));
+jarvis.post('/lancamentos', rota((req, res) => {
+  const e = estadoCeleiro(), b = req.body || {}, valor = num(b.valor);
+  if (!(valor > 0) || valor > 1e6) throw new Erro('Valor do gasto inválido.');
+  const data = b.data ? String(b.data) : hojeNoFuso();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) throw new Erro('Data no formato AAAA-MM-DD.');
+  const forma = String(b.forma || 'pix');
+  if (!['credito', 'debito', 'pix', 'boleto', 'dinheiro'].includes(forma)) throw new Erro('Forma: credito, debito, pix, boleto ou dinheiro.');
+  const cx = acharCaixinha(e, b.caixinha), desc = String(b.desc || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 140);
+  const id = novoId('j'), p = caminho('lancamentos', id);
+  escrever(p, { valor, data, desc, caixinha: cx.id, forma, criado: new Date().toISOString(), por: 'JARVIS' }, 'jarvis');
+  const ym = ymDe(data), e2 = estadoCeleiro(), cx2 = e2.acharCx(cx.id), prev = e2.prevCx(cx2), gasto = e2.gastoCx(cx2, ym);
+  res.json({ ok: true, lancamento: linhaLanc(Object.assign({ id }, db.docs[p].d), e2), caixinha: { nome: cx.nome, previsto: r2(prev), gasto: r2(gasto), restante: r2(prev - gasto) } });
+}));
+app.use('/api/jarvis', jarvis);
+
 app.use((req, res) => res.status(404).type('text').send('Página não encontrada.'));
 
 app.listen(PORTA, () => {

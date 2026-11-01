@@ -101,3 +101,12 @@ npm start
 ```
 
 Depois abra <http://localhost:3000>.
+
+## Porta do JARVIS (assistente do Mac)
+
+O JARVIS consulta o mês e lança gastos direto pelo servidor, nas rotas `/api/jarvis/...`, sem abrir a tela.
+
+- A chave fica só no `.env` do JARVIS, como `CELEIRO_TOKEN`. No Railway vai apenas a impressão digital dela, na variável `JARVIS_TOKEN_SHA256` (SHA-256 em hex; no Mac: `printf %s "CHAVE" | shasum -a 256`). Sem a variável, as rotas não existem.
+- Ele lê o resumo do mês (caixinhas, fatura, reservas, faturamento da Crown) e os lançamentos, e pode lançar um gasto novo. Não apaga nem altera nada.
+- O que ele lança aparece com "por: JARVIS" e pode ser desfeito ou apagado pela tela, como qualquer lançamento.
+- Para desligar, apague a variável `JARVIS_TOKEN_SHA256`.
