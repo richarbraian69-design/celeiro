@@ -829,7 +829,8 @@ function exigirDb(){ if(!S.db){ toast('Entre na sua conta para salvar.'); return
 /* ---------- Render ---------- */
 function pedirRender(){
   var a=document.activeElement;
-  if(a && a.closest && a.closest('#vista,#camada') && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.type!=='checkbox' && a.type!=='file'){ S.renderPendente=true; return; }
+  /* Só espera quando há texto sendo digitado; escolher numa lista ou marcar uma caixa atualiza na hora */
+  if(a && a.closest && a.closest('#vista,#camada') && /INPUT|TEXTAREA/.test(a.tagName) && !/checkbox|radio|file/.test(a.type)){ S.renderPendente=true; return; }
   render();
 }
 document.addEventListener('focusout',function(){ setTimeout(function(){ if(S.renderPendente){ var a=document.activeElement; if(!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))){ S.renderPendente=false; render(); } } },0); });
