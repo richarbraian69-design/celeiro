@@ -399,7 +399,7 @@ function estadoCeleiro() {
   const ideal = cfg.modo === 'ideal', valorItem = it => (ideal && it.ideal != null) ? num(it.ideal) : num(it.valor);
   const caixinhas = cfg.caixinhas || [], fundos = cfg.fundos || [];
   const lancDoMes = ym => lanc.filter(l => ymDe(l.data) === ym);
-  const depositosNoMes = (f, ym) => soma(movs.filter(m => m.fundo === f && ymDe(m.data) === ym && m.valor > 0), m => m.valor);
+  const depositosNoMes = (f, ym) => soma(movs.filter(m => m.fundo === f && ymDe(m.data) === ym && m.valor > 0 && m.tipo !== 'ajuste'), m => m.valor);
   const prevCx = cx => soma(cx.itens || [], valorItem);
   const gastoCx = (cx, ym) => soma(lancDoMes(ym).filter(l => l.caixinha === cx.id), l => l.valor) + soma((cx.itens || []).filter(it => it.paraFundo), it => Math.min(depositosNoMes(it.paraFundo, ym), valorItem(it)));
   const acharCx = id => caixinhas.find(c => c.id === id);
@@ -426,9 +426,12 @@ jarvis.get('/resumo', rota((req, res) => {
   const caixinhas = e.caixinhas.map(cx => { const p = e.prevCx(cx), g = e.gastoCx(cx, ym); return { nome: cx.nome, previsto: r2(p), gasto: r2(g), restante: r2(p - g), passou: p > 0 && g > p }; });
   const semCx = soma(e.lancDoMes(ym).filter(l => !e.acharCx(l.caixinha)), l => l.valor);
   const previsto = soma(caixinhas, c => c.previsto), gasto = soma(caixinhas, c => c.gasto) + semCx;
-  const ymV = e.venctoDe(hoje), fatura = soma(e.lanc.filter(l => l.forma === 'credito' && e.venctoDe(String(l.data)) === ymV), l => l.valor);
+  const ajustes = colecao('ajustes'), ultimoAj = (tipo, ref) => ajustes.filter(a => a.tipo === tipo && a.ref === ref).sort((a, b) => String(b.em).localeCompare(String(a.em)))[0];
+  const ymAb = e.venctoDe(hoje), ymAnt = addMes(ymAb, -1), ymV = hoje <= ymAnt + '-' + pad(e.vence) ? ymAnt : ymAb, ajF = ultimoAj('fatura', ymV);
+  const fatura = soma(e.lanc.filter(l => l.forma === 'credito' && e.venctoDe(String(l.data)) === ymV), l => l.valor) + (ajF ? num(ajF.diferenca) : 0);
+  const sCasa = ultimoAj('saldo', 'casa');
   const reservas = e.fundos.map(f => ({ nome: f.nome, saldo: r2(e.saldoFundo(f.id)), meta: num(f.meta) || null, mensal: num(f.mensal) || null,
-    noMes: r2(soma(e.movs.filter(m => m.fundo === f.id && ymDe(m.data) === ym), m => m.valor)), abaixoDoPiso: !!(f.piso && e.saldoFundo(f.id) < num(f.piso)) }));
+    noMes: r2(soma(e.movs.filter(m => m.fundo === f.id && ymDe(m.data) === ym && m.tipo !== 'ajuste'), m => m.valor)), abaixoDoPiso: !!(f.piso && e.saldoFundo(f.id) < num(f.piso)) }));
   const receb = (db.docs['recebimentos/' + ym] || {}).d || { itens: {}, avulsos: [] };
   let fatPrev = 0, fatRec = 0, pendentes = [];
   colecao('clientes').filter(c => c.ativo !== false).forEach(c => {
@@ -439,6 +442,7 @@ jarvis.get('/resumo', rota((req, res) => {
   res.json({ hoje, mes: ym, previsto: r2(previsto), gasto: r2(gasto), restante: r2(previsto - gasto), semCaixinha: r2(semCx),
     caixinhasPassaram: caixinhas.filter(c => c.passou).map(c => c.nome), caixinhas,
     fatura: { vencimento: ymV + '-' + pad(e.vence), valor: r2(fatura) },
+    saldoContaCasa: sCasa ? { valor: r2(num(sCasa.valor)), informadoEm: sCasa.data } : null,
     reservas, guardadoNoMes: r2(soma(reservas, f => f.noMes)), metaGuardar: r2(soma(e.fundos, f => num(f.mensal))),
     crown: { previsto: r2(fatPrev), recebido: r2(fatRec), aReceber: pendentes.sort((a, b) => b.valor - a.valor) },
     ultimos: e.lancDoMes(ym).sort((a, b) => String(b.data).localeCompare(String(a.data)) || String(b.criado || '').localeCompare(String(a.criado || ''))).slice(0, 8).map(l => linhaLanc(l, e)) });
