@@ -230,9 +230,10 @@ app.post('/api/ler-print', exigir, express.json({ limit: '30mb' }), rota(async (
     'Estas imagens são prints de gastos de uma família brasileira (extrato do banco, app do cartão, nota fiscal ou comprovante). Hoje é ' + hojeNoFuso() + '.\n' +
     'As imagens podem ser pedaços consecutivos de um mesmo print comprido, com uma pequena sobreposição entre um pedaço e o seguinte: não repita o mesmo gasto.\n' +
     'Liste cada gasto visível. Ignore entradas de dinheiro, pagamentos de fatura, estornos e saldos.\n' +
+    'Se a imagem for um cupom ou nota fiscal de uma única compra (lista de produtos com "Valor a Pagar" ou "Total"), registre UM gasto só: o valor total pago (depois dos descontos; nunca o "valor pago" em dinheiro antes do troco), a data do cupom, o nome da loja como descrição e a forma de pagamento escrita no cupom. Não registre os produtos um por um. Cupons diferentes são gastos diferentes.\n' +
     'Caixinhas disponíveis (id: nome e o que entra nela):\n' + caixinhas + '\n\n' +
     'Para cada gasto: data (se o ano não aparecer, use o mais provável perto de hoje), descrição curta, valor positivo, forma de pagamento (se não der para saber, "credito"), a caixinha mais provável (ou null se não der para ter certeza) e, quando for null, uma pergunta curta em português para o dono responder, como "A compra na farmácia foi fralda ou remédio?".\n' +
-    'Registre tudo chamando a ferramenta registrar_gastos uma única vez.' });
+    'Registre tudo chamando a ferramenta registrar_gastos uma única vez, sem texto antes ou depois.' });
   const ctl = new AbortController(); const tempo = setTimeout(() => ctl.abort(), 170000);
   req.on('close', () => { if (!res.writableEnded) ctl.abort(); });
   let r;
@@ -240,7 +241,7 @@ app.post('/api/ler-print', exigir, express.json({ limit: '30mb' }), rota(async (
     r = await fetch(process.env.CELEIRO_ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages', {
       method: 'POST', signal: ctl.signal,
       headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODELO, max_tokens: 8000, tools: [FERRAMENTA], tool_choice: { type: 'tool', name: 'registrar_gastos' }, messages: [{ role: 'user', content: conteudo }] })
+      body: JSON.stringify({ model: MODELO, max_tokens: 8000, tools: [FERRAMENTA], tool_choice: { type: 'auto' }, messages: [{ role: 'user', content: conteudo }] })
     });
   } catch (e) { throw new Erro(ctl.signal.aborted ? 'A leitura demorou demais. Tente com menos prints.' : 'Não consegui falar com o Claude agora. Tente de novo.', 502); }
   finally { clearTimeout(tempo); }
@@ -253,8 +254,15 @@ app.post('/api/ler-print', exigir, express.json({ limit: '30mb' }), rota(async (
     if (r.status === 404) throw new Erro('O modelo ' + MODELO + ' não está disponível nessa chave. Ajuste ANTHROPIC_MODELO no Railway.', 502);
     throw new Erro('O Claude não conseguiu ler o print agora. Tente de novo.', 502);
   }
+  /* O modelo pode responder chamando a ferramenta (o normal) ou, às vezes, em texto com JSON: aceita os dois */
   const uso = (j.content || []).find(b => b.type === 'tool_use');
-  const gastos = uso && uso.input && Array.isArray(uso.input.gastos) ? uso.input.gastos : [];
+  let gastos = uso && uso.input && Array.isArray(uso.input.gastos) ? uso.input.gastos : null;
+  if (!gastos) {
+    const texto = (j.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    const m = texto.match(/\[[\s\S]*\]/) || texto.match(/\{[\s\S]*\}/);
+    try { const v = m ? JSON.parse(m[0]) : null; gastos = Array.isArray(v) ? v : (v && Array.isArray(v.gastos) ? v.gastos : []); } catch (e) { gastos = []; }
+    if (!gastos.length) console.error('[print] resposta sem gastos: ' + texto.slice(0, 300));
+  }
   res.json({ gastos });
 }));
 
