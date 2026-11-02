@@ -378,7 +378,8 @@ tr.inativo td{color:var(--tx3)}
 .saudacao{font-family:var(--f-serif);font-weight:400;font-size:clamp(2rem,3.4vw,2.75rem);letter-spacing:-.01em;line-height:1.05}
 .saudacao em{font-style:normal;font-size:1em}
 .topo{align-items:flex-start}
-.topo-txt{display:grid;gap:6px;min-width:0}
+.topo-txt{display:grid;gap:6px;min-width:0;align-self:center}
+.visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .lit{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.86rem;color:var(--tx2)}
 .lit-cor{width:9px;height:9px;border-radius:50%;background:var(--lc,#3f8f5b);flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
 .lit-sep{color:var(--tx3)}
@@ -481,7 +482,7 @@ tr.inativo td{color:var(--tx3)}
   </aside>
   <main class="principal">
     <div class="topo">
-      <div class="topo-txt"><h1 class="saudacao" id="saudacao">Olá</h1><p class="lit" id="lit-hoje"></p></div>
+      <div class="topo-txt"><h1 class="visually-hidden" id="saudacao">Celeiro</h1><p class="lit" id="lit-hoje"></p></div>
       <div class="topo-dir">
         <div class="mes" role="group" aria-label="Mês">
           <button class="icone-btn" data-act="mes" data-n="-1" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
@@ -832,7 +833,7 @@ document.addEventListener('focusout',function(){ setTimeout(function(){ if(S.ren
 function render(){
   document.getElementById('mes-nome').textContent = nomeMes(S.mes);
   var h=new Date().getHours();
-  document.getElementById('saudacao').innerHTML = (h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+', <em>'+esc(((S.usuario&&S.usuario.nome)||'').split(' ')[0])+'</em>';
+  document.getElementById('saudacao').textContent = 'Celeiro';
   aplicarCorApp();
   var lt=LIT.dia(hoje());
   document.getElementById('lit-hoje').innerHTML='<span class="lit-cor" style="--lc:'+LIT.cores[lt.cor]+'" title="Cor litúrgica: '+esc(lt.cor)+'"></span><span>'+esc(lt.desc)+'</span>'+(lt.fes?'<span class="lit-sep">·</span><b>'+esc(LIT.titulo(lt.fes))+'</b>':'');
