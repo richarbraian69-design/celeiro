@@ -148,15 +148,25 @@ const CABECA = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' 
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)">' +
   '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Celeiro">' +
-  '<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icone-escuro-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon-escuro.png">' +
+  '<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="32x32" href="/icones/favicon-32.png"><link rel="icon" type="image/png" sizes="64x64" href="/icones/favicon-64.png"><link rel="apple-touch-icon" sizes="180x180" href="/icones/apple-touch-icon.png">' +
   '<meta name="robots" content="noindex"></head><body>';
 function pagina() { return CABECA + fs.readFileSync(path.join(__dirname, 'publico', 'index.html'), 'utf8') + '</body></html>'; }
 const PAGINA = pagina();
 app.get('/', (req, res) => { res.set('Cache-Control', 'no-cache'); res.type('html').send(PAGINA); });
 app.get('/manifest.webmanifest', (req, res) => res.type('application/manifest+json').send(JSON.stringify({
   name: 'Celeiro', short_name: 'Celeiro', start_url: '/', display: 'standalone', background_color: '#0f0f0e', theme_color: '#0f0f0e', lang: 'pt-BR',
-  icons: [{ src: '/icone-escuro-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icone-escuro-512.png', sizes: '512x512', type: 'image/png' }, { src: '/icone-escuro-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }]
+  icons: [
+    { src: '/icones/icone-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: '/icones/icone-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icones/icone-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    { src: '/icones/icone-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+  ]
 })));
+/* Ícone no mesmo desenho do Ora et Labora (traço branco sobre fundo escuro). Os endereços antigos continuam respondendo com o ícone novo. */
+const ICONES = path.join(__dirname, 'publico', 'icones');
+const ICONES_ANTIGOS = { '/favicon.ico': 'favicon-64.png', '/apple-touch-icon.png': 'apple-touch-icon.png', '/apple-touch-icon-precomposed.png': 'apple-touch-icon.png',
+  '/apple-touch-icon-escuro.png': 'apple-touch-icon.png', '/icone-escuro-192.png': 'icone-192.png', '/icone-escuro-512.png': 'icone-512.png' };
+app.get(Object.keys(ICONES_ANTIGOS), (req, res) => { res.set('Cache-Control', 'public, max-age=86400'); res.sendFile(path.join(ICONES, ICONES_ANTIGOS[req.path])); });
 app.use(express.static(path.join(__dirname, 'publico'), { index: false, maxAge: '7d' }));
 app.get('/saude', (req, res) => res.type('text').send('ok'));
 app.get('/diagnostico', (req, res) => {
