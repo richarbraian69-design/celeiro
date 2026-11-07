@@ -535,6 +535,9 @@ tr.inativo td{color:var(--tx3)}
 .cx-tab td.n .campo{width:120px;max-width:none}
 .cx-tab td select.campo{min-width:120px}
 .cx-tab .cx-obs{margin-top:6px;font-size:.82rem;color:var(--tx2);background:transparent;border-style:dashed}
+
+.campo.num.dia-cli{width:58px;max-width:none;text-align:center}
+.campo.num.dia-cli.atrasado{color:var(--alerta);border-color:var(--alerta);font-weight:600}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -837,6 +840,8 @@ function fundos(){ return cfg() ? (cfg().fundos||[]) : []; }
 function acharFundo(id){ return fundos().filter(function(f){return f.id===id;})[0]; }
 
 // Crown
+function lerDia(v){ var n=parseInt(String(v||'').replace(/\D/g,''),10); return n>=1&&n<=31 ? n : null; }
+function diaCliente(c){ return lerDia(c&&c.dia); }
 function clientesAtivos(){ return S.clientes.filter(function(c){ return c.ativo!==false; }).sort(function(a,b){ return (a.grupo===b.grupo?0:(a.grupo==='agencia'?-1:1)) || (b.valor-a.valor) || String(a.nome).localeCompare(b.nome); }); }
 function statusCliente(c){ var it=S.receb && S.receb.itens && S.receb.itens[c.id]; return it || 'pendente'; }
 function avulsos(){ return (S.receb && S.receb.avulsos) || []; }
@@ -1179,16 +1184,21 @@ function vEmpresa(){
     '</div><p class="nota">'+(imp?'':'Com o Simples (cerca de '+pct(impSim)+'), o mínimo sobe para <b>'+brl0(metaFaturamento(num(R.minPct),impSim))+'</b> e o ideal para <b>'+brl0(metaFaturamento(num(R.idealPct),impSim))+'</b>.')+'</p></div>';
 
   // clientes
-  var ags=clientesAtivos();
-  var linhasCli=ags.map(function(c){
-    var st=statusCliente(c);
+  var ags=clientesAtivos(), ordem=cfg().ordemClientes==='valor'?'valor':'dia';
+  var lista=ags.slice();
+  if(ordem==='dia') lista.sort(function(a,b){ var da=diaCliente(a)||99, db=diaCliente(b)||99; return (da-db) || (num(b.valor)-num(a.valor)) || String(a.nome).localeCompare(b.nome); });
+  var ehMesAtual=S.mes===hoje().slice(0,7), diaHoje=+hoje().slice(8,10);
+  var temAtraso=false;
+  var linhasCli=lista.map(function(c){
+    var st=statusCliente(c), d=diaCliente(c), atrasado=ehMesAtual && st==='pendente' && d && d<diaHoje; if(atrasado) temAtraso=true;
     return '<tr'+(st==='isento'?' class="inativo"':'')+'><td><input class="campo" data-cli="'+esc(c.id)+'" data-f="nome" value="'+esc(c.nome)+'" aria-label="Cliente"></td>'+
       '<td><select class="campo" data-cli="'+esc(c.id)+'" data-f="tipo" aria-label="Tipo">'+Object.keys(TIPOS_CLIENTE).map(function(k){return '<option value="'+k+'"'+(c.tipo===k?' selected':'')+'>'+TIPOS_CLIENTE[k]+'</option>';}).join('')+'</select></td>'+
       '<td class="n"><input class="campo num" data-cli="'+esc(c.id)+'" data-f="valor" value="'+String(num(c.valor)).replace('.',',')+'" aria-label="Valor mensal"></td>'+
+      '<td class="n"><input class="campo num dia-cli'+(atrasado?' atrasado':'')+'" data-cli="'+esc(c.id)+'" data-f="dia" inputmode="numeric" maxlength="2" value="'+(d||'')+'" placeholder="–" aria-label="Dia em que recebe de '+esc(c.nome)+'"'+(atrasado?' title="Passou do dia e ainda está a receber"':'')+'></td>'+
       '<td><select class="campo" data-rec="'+esc(c.id)+'" aria-label="Situação no mês">'+Object.keys(STATUS_REC).map(function(k){return '<option value="'+k+'"'+(st===k?' selected':'')+'>'+STATUS_REC[k]+'</option>';}).join('')+'</select></td>'+
       '<td class="n"><button class="icone-btn" data-act="cli-inativar" data-id="'+esc(c.id)+'" aria-label="Encerrar cliente" title="Encerrar cliente">'+I.x+'</button></td></tr>';
   }).join('');
-  var linhasAv=avulsos().map(function(a,i){ return '<tr><td colspan="2">'+esc(a.desc)+' <span class="pill">avulso</span></td><td class="n">'+brl(a.valor)+'</td><td><button class="chip" data-act="av-rec" data-i="'+i+'" aria-pressed="'+(!!a.recebido)+'">'+(a.recebido?'Recebido':'A receber')+'</button></td><td class="n"><button class="icone-btn" data-act="av-rm" data-i="'+i+'" aria-label="Remover">'+I.x+'</button></td></tr>'; }).join('');
+  var linhasAv=avulsos().map(function(a,i){ return '<tr><td colspan="2">'+esc(a.desc)+' <span class="pill">avulso</span></td><td class="n">'+brl(a.valor)+'</td><td></td><td><button class="chip" data-act="av-rec" data-i="'+i+'" aria-pressed="'+(!!a.recebido)+'">'+(a.recebido?'Recebido':'A receber')+'</button></td><td class="n"><button class="icone-btn" data-act="av-rm" data-i="'+i+'" aria-label="Remover">'+I.x+'</button></td></tr>'; }).join('');
 
   // divisão
   var tot={richar:0,gustavo:0,fuca:0,ferramentas:0,reserva:0}, agv=0;
@@ -1214,8 +1224,11 @@ function vEmpresa(){
 
   return '<div class="pagina"><div><h2 class="h2">Agência <em>Crown</em></h2><p class="intro">A empresa é uma terceira pessoa: paga os custos, o seu pró-labore e guarda a própria reserva. O que sobra não é dinheiro da casa.</p></div>'+
     '<div class="plano">'+plano+metas+'</div>'+
-    '<section class="secao"><div class="secao-topo"><p class="rot">Clientes em '+nomeMesCurto(S.mes)+' · '+brl0(fat.previsto)+' previstos</p></div><div class="painel"><div class="tab-w"><table><thead><tr><th>Cliente</th><th>Serviço</th><th class="n">Mensal</th><th>'+nomeMesCurto(S.mes)+'</th><th></th></tr></thead><tbody>'+linhasCli+linhasAv+'</tbody></table></div></div>'+
-      '<form class="forma" data-form="cliente"><div class="campos"><label>Novo cliente<input class="campo" id="nc-nome" required placeholder="Nome"></label><label>Mensal<input class="campo num" id="nc-valor" inputmode="decimal" required></label><label>Serviço<select class="campo" id="nc-tipo">'+Object.keys(TIPOS_CLIENTE).map(function(k){return '<option value="'+k+'">'+TIPOS_CLIENTE[k]+'</option>';}).join('')+'</select></label></div><div class="acoes"><button class="btn btn-claro btn-p" type="submit">Adicionar cliente</button></div></form>'+
+    '<section class="secao"><div class="secao-topo"><p class="rot">Clientes em '+nomeMesCurto(S.mes)+' · '+brl0(fat.previsto)+' previstos</p>'+
+      '<div class="seg" role="group" aria-label="Ordenar clientes"><button data-act="ordem-cli" data-o="dia" aria-pressed="'+(ordem==='dia')+'">Por dia</button><button data-act="ordem-cli" data-o="valor" aria-pressed="'+(ordem==='valor')+'">Por valor</button></div></div>'+
+      '<div class="painel"><div class="tab-w"><table><thead><tr><th>Cliente</th><th>Serviço</th><th class="n">Mensal</th><th class="n">Dia</th><th>'+nomeMesCurto(S.mes)+'</th><th></th></tr></thead><tbody>'+linhasCli+linhasAv+'</tbody></table></div></div>'+
+      (temAtraso?'<p class="nota">Dia em vermelho: já passou e o cliente ainda está como a receber.</p>':'')+
+      '<form class="forma" data-form="cliente"><div class="campos"><label>Novo cliente<input class="campo" id="nc-nome" required placeholder="Nome"></label><label>Mensal<input class="campo num" id="nc-valor" inputmode="decimal" required></label><label>Dia que recebe<input class="campo num" id="nc-dia" inputmode="numeric" maxlength="2" placeholder="1 a 31"></label><label>Serviço<select class="campo" id="nc-tipo">'+Object.keys(TIPOS_CLIENTE).map(function(k){return '<option value="'+k+'">'+TIPOS_CLIENTE[k]+'</option>';}).join('')+'</select></label></div><div class="acoes"><button class="btn btn-claro btn-p" type="submit">Adicionar cliente</button></div></form>'+
       '<form class="forma" data-form="avulso"><div class="campos"><label>Entrada avulsa em '+nomeMesCurto(S.mes)+'<input class="campo" id="av-desc" required placeholder="Ex.: site Lucas Delgado"></label><label>Valor<input class="campo num" id="av-valor" inputmode="decimal" required></label></div><div class="acoes"><button class="btn btn-claro btn-p" type="submit">Adicionar entrada</button></div></form></section>'+
     '<section class="secao"><p class="rot">Divisão por cliente · '+brl0(agv)+' de clientes da agência</p><div class="painel"><div class="tab-w"><table><thead><tr><th>Para quem</th><th class="n">Tráfego %</th><th class="n">Posts %</th><th class="n">'+nomeMesCurto(S.mes)+'</th><th></th></tr></thead><tbody>'+linhasDiv+'</tbody><tfoot><tr><td>Total</td><td class="n">'+pct(somaTraf)+'</td><td class="n">'+pct(somaPost)+'</td><td class="n">'+brl0(agv)+'</td><td></td></tr></tfoot></table></div></div>'+
       (Math.abs(somaTraf-100)>0.01||Math.abs(somaPost-100)>0.01?'<div class="faixa"><span><b>As porcentagens não fecham em 100%.</b> Ajuste até o total de cada coluna dar 100.</span></div>':'')+
@@ -1579,6 +1592,7 @@ document.addEventListener('click',function(ev){
     case 'cel-abrir': S.celAberto=el.dataset.id; render(); setTimeout(function(){ var i=document.getElementById('m-valor'); if(i) i.focus(); },20); break;
     case 'cel-fechar': S.celAberto=null; render(); break;
     case 'cx-obs': S.cxObs[el.dataset.k]=true; render(); var o=document.getElementById(el.dataset.k+'-o'); if(o) o.focus(); break;
+    case 'ordem-cli': setPath(S.cfg,'ordemClientes',el.dataset.o); salvarCfg(); render(); break;
     case 'cx-editar': S.cxEdit=!S.cxEdit; render(); window.scrollTo({top:0,behavior:'smooth'}); break;
     case 'proj-mais': (function(){ S.proj.h=Math.max(1,Math.min(24,(Math.round(num(S.proj.h))||6)+Number(el.dataset.n))); try{ localStorage.setItem('celeiro-proj',JSON.stringify(S.proj)); }catch(e){} render(); })(); break;
     case 'proj': (function(){ var k=el.dataset.k, v=el.dataset.v; S.proj[k]= k==='modo'?v:Number(v); try{ localStorage.setItem('celeiro-proj',JSON.stringify(S.proj)); }catch(e){} render(); })(); break;
@@ -1638,7 +1652,8 @@ document.addEventListener('change',function(ev){
   }
   if(el.dataset.cli){
     if(!exigirDb()) return;
-    var f=el.dataset.f, val = f==='valor'?num(el.value):el.value, up={}; up[f]=val;
+    var f=el.dataset.f, val = f==='valor'?num(el.value):f==='dia'?lerDia(el.value):el.value, up={}; up[f]=val;
+    if(f==='dia'){ el.value=val||''; var cl=S.clientes.find(function(x){return x.id===el.dataset.cli;}); if(cl) cl.dia=val; pedirRenderDepois(); }
     S.db.doc('clientes/'+el.dataset.cli).update(up).catch(function(){ toast('Não salvei o cliente','Tente de novo.'); }); return;
   }
   if(el.dataset.rec){
@@ -1713,7 +1728,7 @@ document.addEventListener('submit',function(ev){
     salvarCfg(); render(); toast('"'+nomeF+'" criada no celeiro','',false,desfazerCfg(fotoF,'Caixinha desfeita')); return;
   }
   if(tipo==='cliente'){
-    S.db.collection('clientes').add({nome:document.getElementById('nc-nome').value.trim(), valor:num(document.getElementById('nc-valor').value), tipo:document.getElementById('nc-tipo').value, grupo:document.getElementById('nc-tipo').value==='outro'?'outros':'agencia', ativo:true}).then(function(ref){ toast('Cliente adicionado','',false,desfazerCriacao(['clientes/'+ref.id],'Cliente desfeito')); }).catch(function(){ toast('Não salvei o cliente','Tente de novo.'); });
+    S.db.collection('clientes').add({nome:document.getElementById('nc-nome').value.trim(), valor:num(document.getElementById('nc-valor').value), dia:lerDia(document.getElementById('nc-dia').value), tipo:document.getElementById('nc-tipo').value, grupo:document.getElementById('nc-tipo').value==='outro'?'outros':'agencia', ativo:true}).then(function(ref){ toast('Cliente adicionado','',false,desfazerCriacao(['clientes/'+ref.id],'Cliente desfeito')); }).catch(function(){ toast('Não salvei o cliente','Tente de novo.'); });
     f.reset(); return;
   }
   if(tipo==='avulso'){
