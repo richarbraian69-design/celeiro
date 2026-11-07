@@ -542,6 +542,7 @@ tr.inativo td{color:var(--tx3)}
 .conta-fixa-w:empty{display:none}
 .conta-fixa-w{display:grid;gap:6px}
 .conta-fixa-w .nota{margin:0}
+.tab-proj small.nota-proj{display:block;white-space:normal;max-width:210px;margin-left:auto;line-height:1.35;margin-top:2px}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -854,6 +855,19 @@ function faturamento(){
   clientesAtivos().forEach(function(c){ var st=statusCliente(c); if(st==='isento') return; prev+=num(c.valor); if(st==='recebido') rec+=num(c.valor); });
   avulsos().forEach(function(a){ prev+=num(a.valor); if(a.recebido) rec+=num(a.valor); });
   return {previsto:prev, recebido:rec};
+}
+/* Faturamento do mês aberto em partes, para a projeção: o que falta receber, o que já entrou antes do saldo informado e o que entrou depois */
+function faturamentoDetalhe(sk){
+  var d={previsto:0,pendente:0,recebidoAntes:0,recebidoDepois:0,isento:0}, q=(S.receb&&S.receb.quando)||{};
+  function conta(valor,st,quando){
+    if(st==='isento'){ d.isento+=valor; return; }
+    d.previsto+=valor;
+    if(st!=='recebido'){ d.pendente+=valor; return; }
+    if(sk && quando && quando>(sk.em||sk.data)) d.recebidoDepois+=valor; else d.recebidoAntes+=valor;
+  }
+  clientesAtivos().forEach(function(c){ conta(num(c.valor),statusCliente(c),q[c.id]); });
+  avulsos().forEach(function(a){ conta(num(a.valor),a.recebido?'recebido':'pendente',a.em); });
+  return d;
 }
 function divide(c){
   var D=cfg().divisao, r={richar:0,gustavo:0,fuca:0,ferramentas:0,reserva:0}, v=num(c.valor);
@@ -1351,7 +1365,7 @@ function calcProjecao(){
   /* Gastos do mês atual feitos fora do cartão e já lançados */
   var foraJa=soma(lancDoMes(ym0).filter(function(l){ return l.forma!=='credito'; }),function(l){ return l.valor; });
   var saldoCasa=sc?sc.valor:0, reservaFam=fam?saldoFundo(fam.id):0, reservaCrown=crownF?saldoFundo(crownF.id):0, saldoCrown=sk?sk.valor:0, linhas=[];
-  var fat0=faturamento();
+  var fd=faturamentoDetalhe(sk), fat0={previsto:fd.previsto};
   for(var i=0;i<H;i++){
     var ym=addMes(ym0,i);
     /* ---- Casa ---- */
@@ -1369,7 +1383,7 @@ function calcProjecao(){
       saldoCasa+=tirar-guardar; reservaFam+=guardar-tirar;
     }
     /* ---- Crown ---- */
-    var fat=i===0 ? (sk ? Math.max(0,fat0.previsto-fat0.recebido) : fat0.previsto) : baseFat+(num(P.novos)*i*ticket);
+    var fat=i===0 ? (sk ? fd.pendente+fd.recebidoDepois : fat0.previsto) : baseFat+(num(P.novos)*i*ticket);
     var plC=(i===0&&plRec)?0:pl;
     var imposto=fat*imp/100, resultado=fat-custos-imposto-plC;
     saldoCrown+=resultado;
@@ -1380,7 +1394,7 @@ function calcProjecao(){
     linhas.push({ym:ym, entra:entra, fatura:fatura.valor, faturaVenc:fatura.venc, faturaInf:!!fatura.informada, fora:fora, guardar:guardar, tirar:tirar, saldoCasa:saldoCasa, reservaFam:reservaFam,
       fat:fat, custos:custos, imposto:imposto, pl:plC, resultado:resultado, guardarC:guardarC, tirarC:tirarC, saldoCrown:saldoCrown, reservaCrown:reservaCrown});
   }
-  return {linhas:linhas, sc:sc, sk:sk, plRec:plRec, orc:orc, noCartao:noCartao, foraCartao:foraCartao, modo:modo, fam:fam, famMeta:famMeta, famMensal:famMensal, crownF:crownF,
+  return {linhas:linhas, fd:fd, foraJa:foraJa, sc:sc, sk:sk, plRec:plRec, orc:orc, noCartao:noCartao, foraCartao:foraCartao, modo:modo, fam:fam, famMeta:famMeta, famMensal:famMensal, crownF:crownF,
     inicioCasa:sc?sc.valor:0, inicioCrownConta:sk?sk.valor:0, inicioFam:fam?saldoFundo(fam.id):0, inicioCrown:crownF?saldoFundo(crownF.id):0};
 }
 function rotMes(ym,i){ var p=ym.split('-'); var n=MESES[Number(p[1])-1].slice(0,3); return (i===0||p[1]==='01') ? n+' '+p[0].slice(2) : n; }
@@ -1460,14 +1474,23 @@ function vProjecoes(){
   var gRes=serRes.length?grafico('g-res',labelsG,serRes,{metas:metas,rotulosLongos:longosG,aria:'Reservas da família e da Crown, de hoje até o fim de cada mês'}):'';
   function td(v,cl){ return '<td class="n'+(cl?' '+cl:'')+'">'+(v==null?'—':brl0(v))+'</td>'; }
   function linha(rot,campo,opts){ opts=opts||{}; if(opts.seHouver && !L.some(function(l){ return Math.abs(l[campo])>0.5; })) return ''; return '<tr'+(opts.forte?' class="forte"':'')+'><td>'+rot+'</td>'+L.map(function(l){ var v=l[campo]; if(opts.neg && v) v=-v; return td(v,(opts.alertaNeg&&v<0)?'neg':''); }).join('')+'</tr>'; }
+  var fdx=R.fd;
+  var notaFat=[];
+  if(fdx){
+    if(R.sk && fdx.recebidoAntes>0.5) notaFat.push('fora '+brl0(fdx.recebidoAntes)+' já recebido (no saldo de '+dataBR(R.sk.data)+')');
+    if(fdx.recebidoDepois>0.5) notaFat.push('com '+brl0(fdx.recebidoDepois)+' recebido após o saldo');
+    if(fdx.isento>0.5) notaFat.push('fora '+brl0(fdx.isento)+' isento');
+  }
+  var notaFora=['orçamento '+brl0(R.orc),'menos '+brl0(R.noCartao)+' no cartão'].concat(R.foraJa>0.5?['menos '+brl0(R.foraJa)+' já gasto']:[]);
+  function linhaNota(rot,campo,neg,notas){ return '<tr><td>'+rot+'</td>'+L.map(function(l,i){ var v=l[campo]; if(neg&&v) v=-v; return '<td class="n">'+brl0(v)+(i===0&&notas.length?notas.map(function(t){ return '<small class="sub nota-proj">'+esc(t)+'</small>'; }).join(''):'')+'</td>'; }).join('')+'</tr>'; }
   function linhaFatura(){ return '<tr><td>Fatura do cartão</td>'+L.map(function(l){ return '<td class="n">'+(l.fatura?brl0(-l.fatura):'R$ 0')+'<small class="sub">'+(l.fatura?'vence '+dataBR(l.faturaVenc)+(l.faturaInf?' · informada':' · estimada'):'já paga')+'</small></td>'; }).join('')+'</tr>'; }
   var tabela='<div class="tab-w"><table class="tab-proj"><thead><tr><th></th>'+L.map(function(l,i){ return '<th class="n">'+esc(labels[i])+(i===0?'<small>agora</small>':'')+'</th>'; }).join('')+'</tr></thead><tbody>'+
     '<tr class="grupo-t"><td colspan="'+(L.length+1)+'">Casa</td></tr>'+
-    linha('Pró-labore que entra','entra')+linhaFatura()+linha('Gastos fora do cartão','fora',{neg:true})+
+    linha('Pró-labore que entra','entra')+linhaFatura()+linhaNota('Gastos fora do cartão','fora',true,notaFora)+
     (R.fam?linha('Guardar na reserva (só se sobrar)','guardar',{neg:true})+linha('Tirar da reserva (para cobrir a falta)','tirar',{seHouver:true}):'')+
     linha('Conta da casa no fim do mês','saldoCasa',{forte:true,alertaNeg:true})+(R.fam?linha('Reserva da família','reservaFam'):'')+
     '<tr class="grupo-t"><td colspan="'+(L.length+1)+'">Crown</td></tr>'+
-    linha('Faturamento','fat')+linha('Custos','custos',{neg:true})+(num(cfg().impostoPct)?linha('Imposto','imposto',{neg:true}):'')+linha('Pró-labore','pl',{neg:true})+
+    linhaNota('Faturamento','fat',false,notaFat)+linha('Custos','custos',{neg:true})+(num(cfg().impostoPct)?linha('Imposto','imposto',{neg:true}):'')+linha('Pró-labore','pl',{neg:true})+
     linha('Resultado do mês','resultado',{alertaNeg:true})+linha('Guardar na reserva (só se sobrar)','guardarC',{neg:true})+linha('Tirar da reserva (para cobrir a falta)','tirarC',{seHouver:true})+
     linha('Conta da Crown no fim do mês','saldoCrown',{forte:true,alertaNeg:true})+(R.crownF?linha('Reserva da Crown','reservaCrown'):'')+
     '<tr class="grupo-t"><td colspan="'+(L.length+1)+'">Tudo junto</td></tr>'+
@@ -1660,7 +1683,7 @@ document.addEventListener('click',function(ev){
         S.db.doc('clientes/'+cid).update({ativo:false}).then(function(){ toast(c.nome+' encerrado','Saiu do faturamento previsto. Fica na lista de clientes encerrados.',false,{rotulo:'Desfazer',fn:function(){ S.db.doc('clientes/'+cid).update({ativo:true}).then(function(){ toast(c.nome+' voltou'); render(); },falhaDesfazer); }}); }).catch(function(){ toast('Não salvei','Tente de novo.'); });
       })(); break;
     case 'cli-reativar': if(exigirDb()) S.db.doc('clientes/'+el.dataset.id).update({ativo:true}); break;
-    case 'av-rec': S.receb.avulsos[+el.dataset.i].recebido=!S.receb.avulsos[+el.dataset.i].recebido; salvarReceb(); render(); break;
+    case 'av-rec': var avR=S.receb.avulsos[+el.dataset.i]; avR.recebido=!avR.recebido; if(avR.recebido) avR.em=new Date().toISOString(); else delete avR.em; salvarReceb(); render(); break;
     case 'av-rm': (function(){ var foto=fotoReceb(), a=S.receb.avulsos.splice(+el.dataset.i,1)[0]; salvarReceb(); render(); toast('"'+((a&&a.desc)||'Entrada')+'" apagada','',false,desfazerReceb(foto,S.mes,'Entrada voltou')); })(); break;
     case 'custo-add': S.cfg.custosEmpresa.push({id:uid(),nome:'Novo custo',valor:0}); salvarCfg(); render(); break;
     case 'custo-rm': (function(){ var foto=fotoCfg(), c=S.cfg.custosEmpresa.splice(+el.dataset.i,1)[0]; salvarCfg(); render(); toast('"'+((c&&c.nome)||'Custo')+'" apagado dos custos','',false,desfazerCfg(foto,'Custo voltou')); })(); break;
@@ -1699,7 +1722,9 @@ document.addEventListener('change',function(ev){
   }
   if(el.dataset.rec){
     if(!S.receb) S.receb={itens:{},avulsos:[]}; S.receb.itens=S.receb.itens||{};
-    S.receb.itens[el.dataset.rec]=el.value; salvarReceb(); pedirRenderDepois(); return;
+    S.receb.itens[el.dataset.rec]=el.value; S.receb.quando=S.receb.quando||{};
+    if(el.value==='recebido') S.receb.quando[el.dataset.rec]=new Date().toISOString(); else delete S.receb.quando[el.dataset.rec];
+    salvarReceb(); pedirRenderDepois(); return;
   }
   if(el.dataset.rv){
     var r=S.revisao[+el.dataset.i]; if(el.dataset.rv==='valor') r.valor=num(el.value); else r[el.dataset.rv]=el.value; pedirRenderDepois(); return;
