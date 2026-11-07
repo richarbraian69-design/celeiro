@@ -491,6 +491,17 @@ app.use('/api/jarvis', jarvis);
 
 app.use((req, res) => res.status(404).type('text').send('Página não encontrada.'));
 
+/* Senha esquecida do administrador: com CELEIRO_SENHA_TEMPORARIA no Railway, a senha do administrador vira essa, uma única vez.
+   Depois de entrar, troque a senha em Ajustes → Sua conta e apague a variável. */
+(function senhaTemporaria() {
+  const t = process.env.CELEIRO_SENHA_TEMPORARIA; if (!t) return;
+  const marca = crypto.createHash('sha256').update(t).digest('hex');
+  if (db.senhaTemporariaAplicada === marca) { console.log('Senha temporária já usada antes; apague CELEIRO_SENHA_TEMPORARIA do Railway.'); return; }
+  const adm = db.usuarios.find(u => u.admin); if (!adm) return;
+  try { adm.senha = hashSenha(validarSenha(t)); } catch (e) { console.error('CELEIRO_SENHA_TEMPORARIA inválida:', e.message); return; }
+  db.senhaTemporariaAplicada = marca; gravarAgora();
+  console.log('Senha temporária aplicada à conta do administrador "' + adm.nome + '".');
+})();
 app.listen(PORTA, () => {
   console.log('Celeiro rodando na porta ' + PORTA + ' · dados em ' + DADOS + (dadosPersistentes() ? '' : ' (ATENÇÃO: sem disco; os dados somem a cada atualização)') + ' · prints: ' + (process.env.ANTHROPIC_API_KEY ? MODELO : 'desligado'));
 });
