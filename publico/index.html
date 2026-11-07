@@ -538,6 +538,10 @@ tr.inativo td{color:var(--tx3)}
 
 .campo.num.dia-cli{width:58px;max-width:none;text-align:center}
 .campo.num.dia-cli.atrasado{color:var(--alerta);border-color:var(--alerta);font-weight:600}
+
+.conta-fixa-w:empty{display:none}
+.conta-fixa-w{display:grid;gap:6px}
+.conta-fixa-w .nota{margin:0}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -1019,8 +1023,40 @@ function formLanc(l, pref){
     '<label>Data<input class="campo" type="date" id="'+pref+'-data" value="'+esc(dataPad)+'" required></label>'+
     '<label>Forma<select class="campo" id="'+pref+'-forma">'+opcoesForma(l.forma||'credito')+'</select></label>'+
     '<label class="largo">Descrição<input class="campo" id="'+pref+'-desc" placeholder="Ex.: rancho no Macromix" value="'+esc(l.desc||'')+'"></label>'+
-    '<label class="largo">Caixinha<select class="campo" id="'+pref+'-cx" required>'+opcoesCx(l.caixinha)+'</select></label></div>'+
+    '<label class="largo">Caixinha<select class="campo" id="'+pref+'-cx" required>'+opcoesCx(l.caixinha)+'</select></label>'+
+    '<div class="largo conta-fixa-w" id="'+pref+'-fixa-w" data-orig="'+esc(l.origem||'')+'">'+blocoContaFixa(pref,l.caixinha,ymDe(dataPad),l.origem)+'</div></div>'+
     '<div class="acoes"><button class="btn btn-escuro" type="submit">'+(l.id?'Salvar alteração':'Lançar')+'</button>'+(l.id?'<button class="btn btn-claro" type="button" data-act="cancelar-edit">Cancelar</button><button class="btn btn-claro perigo" type="button" data-act="excluir-lanc" data-id="'+esc(l.id)+'">Excluir</button>':'')+'</div></form>';
+}
+/* Conta fixa: quando a caixinha é fixa, o gasto pode ser uma das contas do mês que ainda faltam lançar */
+function contasFixasPendentes(cx,ym,origemAtual){
+  return (cx.itens||[]).filter(function(it){
+    if(it.paraFundo || !it.id) return false;
+    var o=it.id+'@'+ym; if(o===origemAtual) return true;
+    return !S.lanc.some(function(l){ return l.origem===o; });
+  });
+}
+function blocoContaFixa(pref,cxId,ym,origemAtual){
+  var cx=cxId?acharCx(cxId):null; if(!cx || cx.tipo!=='fixa') return '';
+  var itemAtual = origemAtual && origemAtual.split('@')[1]===ym ? origemAtual.split('@')[0] : '';
+  var pend=contasFixasPendentes(cx,ym,origemAtual), total=(cx.itens||[]).filter(function(it){return !it.paraFundo;}).length;
+  if(!pend.length) return '<p class="nota">Todas as contas de '+esc(cx.nome)+' de '+nomeMesCurto(ym)+' já foram lançadas.</p>';
+  return '<label>Qual conta é esta?<select class="campo" id="'+pref+'-fixa"><option value="">Outro gasto (não é uma conta da lista)</option>'+
+    pend.map(function(it){ return '<option value="'+esc(it.id)+'"'+(it.id===itemAtual?' selected':'')+'>'+esc(it.nome)+' · '+brl(valorItem(it))+'</option>'; }).join('')+
+    '</select></label><p class="nota">'+(pend.length===1?'Falta lançar 1':'Faltam lançar '+pend.length)+' de '+total+' em '+esc(cx.nome)+' ('+nomeMesCurto(ym)+'). A conta escolhida sai da lista "a lançar".</p>';
+}
+function atualizarContaFixa(pref){
+  var w=document.getElementById(pref+'-fixa-w'), cx=document.getElementById(pref+'-cx'), d=document.getElementById(pref+'-data'); if(!w||!cx) return;
+  var atual=document.getElementById(pref+'-fixa'), orig=w.dataset.orig||'';
+  var ym=ymDe((d&&d.value)||hoje()), escolhido=atual&&atual.value ? atual.value+'@'+ym : orig;
+  w.innerHTML=blocoContaFixa(pref,cx.value,ym,escolhido);
+}
+function escolherContaFixa(pref){
+  var sel=document.getElementById(pref+'-fixa'), cx=acharCx(document.getElementById(pref+'-cx').value); if(!sel||!cx) return;
+  var it=(cx.itens||[]).filter(function(x){return x.id===sel.value;})[0], desc=document.getElementById(pref+'-desc'), val=document.getElementById(pref+'-valor'), fo=document.getElementById(pref+'-forma');
+  if(!it) return;
+  if(desc && (!desc.value.trim() || desc.dataset.auto==='1')){ desc.value=it.nome; desc.dataset.auto='1'; }
+  if(val && (!String(val.value).trim() || val.dataset.auto==='1')){ val.value=String(valorItem(it)).replace('.',','); val.dataset.auto='1'; }
+  if(fo) fo.value=formaPadrao(cx,it);
 }
 function vLanc(){
   var lista=lancDoMes(S.mes).filter(function(l){ return !S.filtroCx || l.caixinha===S.filtroCx; }).sort(function(a,b){ return (b.data+(b.criado||'')).localeCompare(a.data+(a.criado||'')); });
@@ -1642,8 +1678,13 @@ document.addEventListener('keydown',function(ev){
   if((ev.key==='Enter'||ev.key===' ') && ev.target.classList && ev.target.classList.contains('lc')){ ev.preventDefault(); ev.target.click(); }
 });
 
+document.addEventListener('input',function(ev){ var el=ev.target; if(el.dataset && el.dataset.auto==='1' && /-(desc|valor)$/.test(el.id||'')) el.dataset.auto=''; });
 document.addEventListener('change',function(ev){
   var el=ev.target;
+  if(el.closest && el.closest('form[data-form="lanc"]')){
+    var mF=/^(\w+)-(cx|data|fixa)$/.exec(el.id||'');
+    if(mF){ if(mF[2]==='fixa') escolherContaFixa(mF[1]); else atualizarContaFixa(mF[1]); return; }
+  }
   if(el.id==='proj-h'){ S.proj.h=Number(el.value)||6; try{ localStorage.setItem('celeiro-proj',JSON.stringify(S.proj)); }catch(e){} render(); return; }
   if(el.name==='cor-app' && S.cfg){ S.cfg.corApp=el.value; salvarCfg(); render(); return; }
   if(el.dataset.cfg){
@@ -1679,7 +1720,9 @@ document.addEventListener('submit',function(ev){
     if(!(valor>0)){ toast('Informe o valor do gasto'); return; }
     if(!cx){ toast('Escolha a caixinha','Assim você sabe de onde o dinheiro saiu.'); return; }
     var dados={valor:valor, data:document.getElementById(p+'-data').value||hoje(), desc:document.getElementById(p+'-desc').value.trim(), caixinha:cx, forma:document.getElementById(p+'-forma').value};
-    var id=f.dataset.id;
+    var id=f.dataset.id, selFixa=document.getElementById(p+'-fixa'), wFixa=document.getElementById(p+'-fixa-w');
+    if(selFixa && selFixa.value) dados.origem=selFixa.value+'@'+ymDe(dados.data);
+    else if(id && wFixa && wFixa.dataset.orig) dados.origem=null;
     var antes = id ? (S.lanc.filter(function(l){return l.id===id;})[0]) : null; antes = antes ? semId(antes) : null;
     var op = id ? S.db.doc('lancamentos/'+id).update(dados) : S.db.collection('lancamentos').add(Object.assign(dados,{criado:new Date().toISOString(), por:S.usuario?S.usuario.nome:''}));
     op.then(function(ref){
