@@ -543,6 +543,24 @@ tr.inativo td{color:var(--tx3)}
 .conta-fixa-w{display:grid;gap:6px}
 .conta-fixa-w .nota{margin:0}
 .tab-proj small.nota-proj{display:block;white-space:normal;max-width:210px;margin-left:auto;line-height:1.35;margin-top:2px}
+
+.contas-mes{padding:4px 0}
+.ct{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:10px 18px;border-top:1px solid var(--linha)}
+.contas-mes > .ct:first-child{border-top:0}
+.ct-nome{display:grid;gap:1px;min-width:0}
+.ct-nome b{font-weight:500;overflow-wrap:anywhere}
+.ct-nome small{color:var(--tx3);font-size:.8rem}
+.ct-val{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ct.ok{grid-template-columns:auto minmax(0,1fr) auto;color:var(--tx2)}
+.ct-ok{width:18px;text-align:center;color:var(--ok, #3f8f5a);font-weight:700}
+.ct-pagas{border-top:1px solid var(--linha)}
+.ct-pagas summary{cursor:pointer;padding:10px 18px;font-size:.86rem;color:var(--tx2)}
+.ct-pagas .ct:first-of-type{border-top:0}
+.pill-btn{cursor:pointer;font:inherit;border:1px solid var(--linha)}
+.pill-btn:hover{background:var(--ac-suave,var(--sup));color:var(--tx)}
+.cx-tab td.cx-conta{text-align:center;vertical-align:middle}
+.cx-tab td.cx-conta input{width:18px;height:18px}
+@media (max-width:640px){ .cx-ed .cx-tab tr{grid-template-columns:1fr 1fr 1.2fr auto auto} .ct{padding:10px 14px;grid-template-columns:auto minmax(0,1fr) auto} .ct .ct-val{grid-column:3;grid-row:1} .ct .btn{grid-column:3;grid-row:2;justify-self:end;margin-top:2px} .ct .ct-nome{grid-column:2;grid-row:1 / span 2} .ct > .ponto{grid-column:1;grid-row:1;align-self:center} }
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -1010,9 +1028,17 @@ function vInicio(){
       '<p class="cx-sub'+(g>lim?' alerta':'')+'">'+(g>lim?'Passou '+brl0(g-lim)+' do limite da semana':'Sobram '+brl0(lim-g)+' até domingo')+'</p></div>';
   }).join('');
   var caixas=(cfg().caixinhas||[]).map(function(cx){ return linhaCx(cx); }).join('');
+  var cts=contasDoMes(S.mes), ctPend=cts.filter(function(c){return !c.lanc;}), ctPagas=cts.filter(function(c){return c.lanc;});
+  var painelContas = !cts.length ? '' : '<section class="secao"><div class="secao-topo"><p class="rot">Contas de '+nomeMesCurto(S.mes)+' · '+ctPagas.length+' de '+cts.length+' pagas'+(ctPend.length?' · faltam '+brl0(soma(ctPend,function(c){return valorItem(c.it);})):'')+'</p>'+
+      (ctPend.length>1?'<button class="link" data-act="lancar-fixas">Marcar todas como pagas</button>':'')+'</div><div class="painel contas-mes">'+
+    ctPend.map(function(c){ return '<div class="ct"><span class="ponto" style="--t:'+esc(c.cx.cor)+'"></span><div class="ct-nome"><b>'+esc(c.it.nome)+'</b><small>'+esc(c.cx.nome)+'</small></div><span class="ct-val">'+brl(valorItem(c.it))+'</span><button class="btn btn-claro btn-p" data-act="pagar-conta" data-cx="'+esc(c.cx.id)+'" data-it="'+esc(c.it.id)+'">Paguei</button></div>'; }).join('')+
+    (ctPend.length?'':'<p class="vazio">Todas as contas de '+nomeMesCurto(S.mes)+' estão pagas.</p>')+
+    (ctPagas.length?'<details class="ct-pagas"><summary>Pagas ('+ctPagas.length+')</summary>'+ctPagas.map(function(c){ return '<div class="ct ok"><span class="ct-ok" aria-hidden="true">✓</span><div class="ct-nome"><b>'+esc(c.it.nome)+'</b><small>'+esc(c.cx.nome)+' · '+dataBR(c.lanc.data)+'</small></div><span class="ct-val">'+brl(c.lanc.valor)+'</span></div>'; }).join('')+'</details>':'')+
+    '</div></section>';
   var ult=lancDoMes(S.mes).slice().sort(function(a,b){ return (b.data+(b.criado||'')).localeCompare(a.data+(a.criado||'')); }).slice(0,5);
   return '<div class="conteudo">'+htmlBanner()+lado+'<div class="vista">'+
     (semanais.length && S.mes===ymHoje ? '<section class="secao"><div class="secao-topo"><p class="rot">Esta semana · '+dataBR(seg)+' a '+dataBR(dom)+'</p></div><div class="painel">'+semana+'</div></section>':'')+
+    painelContas+
     '<section class="secao"><div class="secao-topo"><p class="rot">Caixinhas de '+nomeMesCurto(S.mes)+'</p><button class="link" data-act="ver" data-v="caixinhas">Abrir orçamento</button></div><div class="painel">'+(caixas||'<p class="vazio">Nenhuma caixinha criada.</p>')+'</div></section>'+
     '<section class="secao"><div class="secao-topo"><p class="rot">Últimos lançamentos</p><button class="link" data-act="ver" data-v="lancamentos">Ver todos</button></div><div class="painel">'+(ult.length?ult.map(linhaLanc).join(''):'<p class="vazio"><em>Nada lançado em '+nomeMesCurto(S.mes)+'.</em> Anote cada gasto no dia em que acontece, mesmo no crédito. Assim a fatura deixa de ser surpresa.</p>')+'</div></section>'+
   '</div></div>';
@@ -1042,21 +1068,28 @@ function formLanc(l, pref){
     '<div class="acoes"><button class="btn btn-escuro" type="submit">'+(l.id?'Salvar alteração':'Lançar')+'</button>'+(l.id?'<button class="btn btn-claro" type="button" data-act="cancelar-edit">Cancelar</button><button class="btn btn-claro perigo" type="button" data-act="excluir-lanc" data-id="'+esc(l.id)+'">Excluir</button>':'')+'</div></form>';
 }
 /* Conta fixa: quando a caixinha é fixa, o gasto pode ser uma das contas do mês que ainda faltam lançar */
+function ehConta(cx,it){ if(!it || it.paraFundo || !it.id) return false; return it.conta!=null ? !!it.conta : (cx.tipo==='fixa' && formaPadrao(cx,it)!=='credito'); }
+function lancDaConta(it,ym){ var o=it.id+'@'+ym; return S.lanc.filter(function(l){ return l.origem===o; })[0]||null; }
+/* Todas as contas do mês, de todas as caixinhas, com o lançamento que pagou cada uma (se houver) */
+function contasDoMes(ym){
+  var r=[]; (cfg().caixinhas||[]).forEach(function(cx){ (cx.itens||[]).forEach(function(it){ if(ehConta(cx,it) && valorItem(it)>0) r.push({cx:cx,it:it,lanc:lancDaConta(it,ym)}); }); });
+  return r;
+}
 function contasFixasPendentes(cx,ym,origemAtual){
   return (cx.itens||[]).filter(function(it){
-    if(it.paraFundo || !it.id) return false;
+    if(!ehConta(cx,it)) return false;
     var o=it.id+'@'+ym; if(o===origemAtual) return true;
     return !S.lanc.some(function(l){ return l.origem===o; });
   });
 }
 function blocoContaFixa(pref,cxId,ym,origemAtual){
-  var cx=cxId?acharCx(cxId):null; if(!cx || cx.tipo!=='fixa') return '';
+  var cx=cxId?acharCx(cxId):null; if(!cx || !(cx.itens||[]).some(function(it){ return ehConta(cx,it); })) return '';
   var itemAtual = origemAtual && origemAtual.split('@')[1]===ym ? origemAtual.split('@')[0] : '';
-  var pend=contasFixasPendentes(cx,ym,origemAtual), total=(cx.itens||[]).filter(function(it){return !it.paraFundo;}).length;
+  var pend=contasFixasPendentes(cx,ym,origemAtual), total=(cx.itens||[]).filter(function(it){return ehConta(cx,it);}).length;
   if(!pend.length) return '<p class="nota">Todas as contas de '+esc(cx.nome)+' de '+nomeMesCurto(ym)+' já foram lançadas.</p>';
   return '<label>Qual conta é esta?<select class="campo" id="'+pref+'-fixa"><option value="">Outro gasto (não é uma conta da lista)</option>'+
     pend.map(function(it){ return '<option value="'+esc(it.id)+'"'+(it.id===itemAtual?' selected':'')+'>'+esc(it.nome)+' · '+brl(valorItem(it))+'</option>'; }).join('')+
-    '</select></label><p class="nota">'+(pend.length===1?'Falta lançar 1':'Faltam lançar '+pend.length)+' de '+total+' em '+esc(cx.nome)+' ('+nomeMesCurto(ym)+'). A conta escolhida sai da lista "a lançar".</p>';
+    '</select></label><p class="nota">'+(pend.length===1?'Falta pagar 1':'Faltam pagar '+pend.length)+' de '+total+' em '+esc(cx.nome)+' ('+nomeMesCurto(ym)+'). A conta escolhida passa para as pagas.</p>';
 }
 function atualizarContaFixa(pref){
   var w=document.getElementById(pref+'-fixa-w'), cx=document.getElementById(pref+'-cx'), d=document.getElementById(pref+'-data'); if(!w||!cx) return;
@@ -1124,8 +1157,8 @@ function vCaixinhas(){
   var lista=cxs.map(function(cx){
     var p=prevCx(cx), g=gastoCx(cx,S.mes), passou=p>0&&g>p, aberto=!!(S.cxAbertas&&S.cxAbertas[cx.id]);
     var itens=(cx.itens||[]).map(function(it){
-      var fundo=it.paraFundo?acharFundo(it.paraFundo):null, feito=!it.paraFundo && S.lanc.some(function(l){ return l.origem===it.id+'@'+S.mes; });
-      var est = cx.tipo==='fixa' && !it.paraFundo ? (feito?'<span class="pill ok">lançado</span>':'<span class="pill">a lançar</span>') : '';
+      var fundo=it.paraFundo?acharFundo(it.paraFundo):null, feito=ehConta(cx,it) && !!lancDaConta(it,S.mes);
+      var est = ehConta(cx,it) ? (feito?'<span class="pill ok">pago</span>':'<button class="pill pill-btn" type="button" data-act="pagar-conta" data-cx="'+esc(cx.id)+'" data-it="'+esc(it.id)+'" title="Lançar o pagamento desta conta">a pagar</button>') : '';
       return '<li><div class="cxv-it"><span>'+esc(it.nome)+'</span>'+(it.nota?'<small>'+esc(it.nota)+'</small>':'')+(fundo?'<small>Vai para '+esc(fundo.nome)+' no celeiro</small>':'')+'</div>'+
         '<span class="cxv-forma">'+(fundo?'reserva':esc(FORMAS[formaPadrao(cx,it)]||''))+'</span>'+est+
         '<b>'+brl(valorItem(it))+'</b></li>';
@@ -1151,6 +1184,7 @@ function vCaixinhasEditar(cxs,noCartao){
         '<td class="n" data-rot="Mínimo"><input class="campo num" id="'+idc+'-v" data-cfg="'+b+'.valor" data-tipo="num" inputmode="decimal" value="'+String(num(it.valor)).replace('.',',')+'" aria-label="Valor mínimo"></td>'+
         '<td class="n" data-rot="Ideal"><input class="campo num" id="'+idc+'-i" data-cfg="'+b+'.ideal" data-tipo="numOuVazio" inputmode="decimal" value="'+(it.ideal!=null?String(num(it.ideal)).replace('.',','):'')+'" placeholder="igual" aria-label="Valor ideal"></td>'+
         '<td data-rot="Pago com">'+(fundo?'<span class="nota">vai para a reserva</span>':'<select class="campo" id="'+idc+'-f" data-cfg="'+b+'.forma" aria-label="Pago com">'+formas.map(function(k){ return '<option value="'+k+'"'+(formaPadrao(cx,it)===k?' selected':'')+'>'+FORMAS[k]+'</option>'; }).join('')+'</select>')+'</td>'+
+        '<td data-rot="Conta do mês" class="cx-conta">'+(fundo?'':'<input type="checkbox" id="'+idc+'-c" data-cfg="'+b+'.conta" data-tipo="bool"'+(ehConta(cx,it)?' checked':'')+' aria-label="'+esc(it.nome)+' é uma conta do mês">')+'</td>'+
         '<td class="n"><button class="icone-btn" type="button" data-act="rm-item" data-cx="'+esc(cx.id)+'" data-ii="'+ii+'" aria-label="Remover '+esc(it.nome)+'" title="Remover item">'+I.x+'</button></td></tr>';
     }).join('');
     return '<section class="cartao cx-ed">'+
@@ -1160,11 +1194,11 @@ function vCaixinhasEditar(cxs,noCartao){
         '<label class="aj-check"><input type="checkbox" id="ed-'+esc(cx.id)+'-sem" data-cfg="'+base+'.semanal" data-tipo="bool"'+(cx.semanal?' checked':'')+'> Limite por semana</label>'+
         '<span class="cx-ed-tot">'+brl0(prevCx(cx))+'</span>'+
         '<button class="icone-btn" type="button" data-act="cx-rm" data-cx="'+esc(cx.id)+'" aria-label="Apagar a caixinha '+esc(cx.nome)+'" title="Apagar caixinha">'+I.x+'</button></div>'+
-      '<div class="tab-w"><table class="cx-tab"><thead><tr><th>Item</th><th class="n">Mínimo</th><th class="n">Ideal</th><th>Pago com</th><th></th></tr></thead><tbody>'+
-        (linhas||'<tr><td colspan="5" class="nota">Sem itens.</td></tr>')+'</tbody></table></div>'+
+      '<div class="tab-w"><table class="cx-tab"><thead><tr><th>Item</th><th class="n">Mínimo</th><th class="n">Ideal</th><th>Pago com</th><th title="Conta paga uma vez no mês: aparece na lista de contas a pagar">Conta do mês</th><th></th></tr></thead><tbody>'+
+        (linhas||'<tr><td colspan="6" class="nota">Sem itens.</td></tr>')+'</tbody></table></div>'+
       '<div class="acoes"><button class="link" type="button" data-act="add-item" data-ci="'+ci+'">Adicionar item</button></div></section>';
   }).join('');
-  return '<div class="faixa cinza"><span>As mudanças salvam sozinhas. <b>Ideal</b> em branco é igual ao mínimo. <b>Pago com</b> diz o que vai para a fatura do cartão: hoje '+brl0(noCartao)+' por mês, usado nas projeções.</span></div>'+
+  return '<div class="faixa cinza"><span>As mudanças salvam sozinhas. <b>Ideal</b> em branco é igual ao mínimo. <b>Pago com</b> diz o que vai para a fatura do cartão: hoje '+brl0(noCartao)+' por mês, usado nas projeções. <b>Conta do mês</b> marca o que se paga uma vez por mês (aluguel, escola, internet): aparece em Contas a pagar no início.</span></div>'+
     blocos+'<div class="acoes"><button class="btn btn-claro" data-act="nova-cx">Nova caixinha</button><button class="btn btn-escuro" data-act="cx-editar">Concluir</button></div>';
 }
 
@@ -1566,13 +1600,20 @@ function secaoContas(){
 function carregarContas(){ api('GET','/api/contas').then(function(j){ S.contas=j.contas; pedirRender(); }).catch(function(){}); }
 
 /* ---------- Folha de novo gasto ---------- */
-function abrirNovo(){
+function abrirNovo(pre){
   if(!S.cfg) return;
   var cam=document.getElementById('camada');
   cam.innerHTML='<div class="veu" data-act="fechar-veu"><div class="folha" role="dialog" aria-modal="true" aria-label="Novo gasto"><div class="folha-topo"><h3>Novo <em>gasto</em></h3><button class="icone-btn" data-act="fechar" aria-label="Fechar">'+I.x+'</button></div>'+formLanc(null,'q').replace('<form class="forma"','<form class="forma" style="border:0;padding:0;background:none"').replace(/<h3>.*?<\/h3>/,'')+
     (S.imgOk?'<div class="folha-print"><label class="print-zona" for="print-arq-q">'+I.img+'<span>Ou mande o print do extrato e o Claude lança por você</span><input type="file" id="print-arq-q" data-print="1" accept="image/png,image/jpeg,image/webp" multiple hidden></label></div>':'')+
     '</div></div>';
-  setTimeout(function(){ var el=document.getElementById('q-valor'); if(el) el.focus(); },30);
+  setTimeout(function(){
+    if(pre && pre.cx){
+      var c=document.getElementById('q-cx'), d=document.getElementById('q-data'); if(c) c.value=pre.cx;
+      if(d && pre.ym && pre.ym!==ymDe(hoje())) d.value=pre.ym+'-05';
+      atualizarContaFixa('q'); var f=document.getElementById('q-fixa'); if(f && pre.it){ f.value=pre.it; escolherContaFixa('q'); }
+    }
+    var el=document.getElementById('q-valor'); if(el){ el.focus(); if(el.select) el.select(); }
+  },30);
 }
 function fecharCamada(){ document.getElementById('camada').innerHTML=''; if(S.renderPendente){ S.renderPendente=false; render(); } }
 
@@ -1610,6 +1651,7 @@ document.addEventListener('click',function(ev){
     case 'ver': S.view=el.dataset.v; S.editLanc=null; try{ history.replaceState(null,'','#'+S.view); }catch(e){} render(); window.scrollTo(0,0); break;
     case 'mes': S.mes=addMes(S.mes,Number(el.dataset.n)); assinarLanc(); assinarReceb(); render(); break;
     case 'novo': abrirNovo(); break;
+    case 'pagar-conta': ev.preventDefault(); abrirNovo({cx:el.dataset.cx, it:el.dataset.it, ym:S.mes}); break;
     case 'fechar': case 'fechar-veu': fecharCamada(); break;
     case 'tema': trocarTema(); break;
     case 'filtro': S.filtroCx=el.dataset.cx; render(); break;
@@ -1814,15 +1856,15 @@ document.addEventListener('submit',function(ev){
 function lancarFixas(){
   if(!exigirDb()) return;
   var ym=S.mes, dia = ym===ymDe(hoje()) ? hoje() : ym+'-05', novos=[];
-  (S.cfg.caixinhas||[]).forEach(function(cx){ if(cx.tipo!=='fixa') return; (cx.itens||[]).forEach(function(it){
-    var v=valorItem(it); if(!(v>0) || it.paraFundo) return;
+  (S.cfg.caixinhas||[]).forEach(function(cx){ (cx.itens||[]).forEach(function(it){
+    var v=valorItem(it); if(!(v>0) || !ehConta(cx,it)) return;
     var origem=it.id+'@'+ym; if(S.lanc.some(function(l){return l.origem===origem;})) return;
-    novos.push({valor:v, data:dia, desc:it.nome, caixinha:cx.id, forma:it.forma||'boleto', origem:origem, criado:new Date().toISOString()});
+    novos.push({valor:v, data:dia, desc:it.nome, caixinha:cx.id, forma:formaPadrao(cx,it), origem:origem, criado:new Date().toISOString()});
   }); });
-  if(!novos.length){ toast('As contas fixas de '+nomeMesCurto(ym)+' já estão lançadas'); return; }
+  if(!novos.length){ toast('As contas de '+nomeMesCurto(ym)+' já estão lançadas'); return; }
   var criados=[];
   var c=Promise.resolve(); novos.forEach(function(n){ c=c.then(function(){ return S.db.collection('lancamentos').add(n).then(function(r){ criados.push('lancamentos/'+r.id); }); }); });
-  c.then(function(){ toast(novos.length+' contas fixas lançadas em '+nomeMesCurto(ym),'Confira as datas e as formas de pagamento na lista.',false,desfazerCriacao(criados,'Contas fixas desfeitas')); }).catch(function(){ toast('Parte das contas não foi lançada','Tente de novo; as que já entraram não se repetem.'); });
+  c.then(function(){ toast(novos.length+' contas lançadas em '+nomeMesCurto(ym),'Confira as datas e as formas de pagamento na lista.',false,desfazerCriacao(criados,'Contas fixas desfeitas')); }).catch(function(){ toast('Parte das contas não foi lançada','Tente de novo; as que já entraram não se repetem.'); });
 }
 
 var exCadeia=Promise.resolve();
