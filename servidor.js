@@ -146,7 +146,7 @@ app.use((req, res, next) => { res.set('X-Content-Type-Options', 'nosniff'); res.
 
 const CABECA = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
-  '<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)">' +
+  '<meta name="theme-color" content="#000000"><meta name="color-scheme" content="dark">' +
   '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Celeiro">' +
   '<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="32x32" href="/icones/favicon-32.png"><link rel="icon" type="image/png" sizes="64x64" href="/icones/favicon-64.png"><link rel="apple-touch-icon" sizes="180x180" href="/icones/apple-touch-icon.png">' +
   '<meta name="robots" content="noindex"></head><body>';
@@ -154,7 +154,7 @@ function pagina() { return CABECA + fs.readFileSync(path.join(__dirname, 'public
 const PAGINA = pagina();
 app.get('/', (req, res) => { res.set('Cache-Control', 'no-cache'); res.type('html').send(PAGINA); });
 app.get('/manifest.webmanifest', (req, res) => res.type('application/manifest+json').send(JSON.stringify({
-  name: 'Celeiro', short_name: 'Celeiro', start_url: '/', display: 'standalone', background_color: '#0f0f0e', theme_color: '#0f0f0e', lang: 'pt-BR',
+  name: 'Celeiro', short_name: 'Celeiro', start_url: '/', display: 'standalone', background_color: '#18181b', theme_color: '#000000', lang: 'pt-BR',
   icons: [
     { src: '/icones/icone-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
     { src: '/icones/icone-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

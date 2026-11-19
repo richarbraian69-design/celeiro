@@ -1,43 +1,23 @@
 <title>Celeiro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: o mesmo esqueleto do Ora et Labora. Menu à esquerda; painel central com saudação, banner escuro de citações e a vista; na Início, cartão à direita com os números do mês e o celeiro isométrico que se enche de sacas conforme a reserva cresce. Quase monocromático; cor viva só nas tags das caixinhas, nas sacas e nos alertas. */
 :root{
-  color-scheme: light;
-  --bg:#f7f7f5; --painel:#ffffff; --sup:#f2f1ee; --sup-2:#e9e8e4; --linha:#e8e7e3;
-  --tx:#1c1c1a; --tx2:#6d6c67; --tx3:#a3a29c;
-  --btn:#1c1c1a; --btn-tx:#fafaf8;
-  --alerta:#c0392b; --ok:#2f6b4f; --ouro:#d9a21b; --aviso:#8a6200; --aviso-bg:#fbf0d3; --alerta-bg:#fbe4e0; --ok-bg:#e3efe7;
-  --banner:#111110; --banner-tx:#f4f3ef; --banner-tx2:#a6a59f;
-  --iso-top:#ffffff; --iso-esq:#f0efeb; --iso-dir:#e0dfd9; --iso-vao:#c9c7c0; --iso-linha:#4f4e49; --iso-fant:#c4c3bd;
-  --iso-chao:#f6f5f1; --copa-top:#eaf2e5; --copa-esq:#dbe8d3; --copa-dir:#c8dabd; --mel-top:#f2c94c; --mel-esq:#e3b237; --mel-dir:#c9982a;
-  --sombra:0 1px 2px rgba(20,20,18,.05), 0 8px 24px rgba(20,20,18,.06);
-  --f-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme: dark;
-    --bg:#0f0f0e; --painel:#171716; --sup:#211f1e; --sup-2:#2a2826; --linha:#2a2927;
-    --tx:#ecebe7; --tx2:#9e9d97; --tx3:#6b6a65; --btn:#ecebe7; --btn-tx:#131312;
-    --alerta:#e8705f; --ok:#79c29b; --ouro:#e8b931; --aviso:#e9c35c; --aviso-bg:#3a3017; --alerta-bg:#3d2420; --ok-bg:#1d2e24;
-    --banner:#f4f3ef; --banner-tx:#151513; --banner-tx2:#6d6c67;
-    --iso-top:#2c2b29; --iso-esq:#222120; --iso-dir:#1a1918; --iso-vao:#0c0c0b; --iso-linha:#bdbcb6; --iso-fant:#4a4945;
-    --iso-chao:#1d1c1b; --copa-top:#283329; --copa-esq:#1f2a21; --copa-dir:#18211a; --mel-top:#e8b931; --mel-esq:#c99a22; --mel-dir:#a67d16;
-    --sombra:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-  }
-}
-:root[data-theme="dark"]{
   color-scheme: dark;
-  --bg:#0f0f0e; --painel:#171716; --sup:#211f1e; --sup-2:#2a2826; --linha:#2a2927;
-  --tx:#ecebe7; --tx2:#9e9d97; --tx3:#6b6a65; --btn:#ecebe7; --btn-tx:#131312;
-  --alerta:#e8705f; --ok:#79c29b; --ouro:#e8b931; --aviso:#e9c35c; --aviso-bg:#3a3017; --alerta-bg:#3d2420; --ok-bg:#1d2e24;
-  --banner:#f4f3ef; --banner-tx:#151513; --banner-tx2:#6d6c67;
-  --iso-top:#2c2b29; --iso-esq:#222120; --iso-dir:#1a1918; --iso-vao:#0c0c0b; --iso-linha:#bdbcb6; --iso-fant:#4a4945;
-  --iso-chao:#1d1c1b; --copa-top:#283329; --copa-esq:#1f2a21; --copa-dir:#18211a; --mel-top:#e8b931; --mel-esq:#c99a22; --mel-dir:#a67d16;
-  --sombra:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --fundo:#18181b; --bg:#18181b; --painel:rgba(255,255,255,.065); --sup:rgba(255,255,255,.09); --sup-2:rgba(255,255,255,.14);
+  --borda:rgba(255,255,255,.09); --linha:rgba(255,255,255,.10); --trilho:#3a3a3c;
+  --tx:#ffffff; --tx2:#a1a1a6; --tx3:#8e8e93;
+  --btn:#ffffff; --btn-tx:#000000;
+  --laranja:#ff9f0a; --laranja-tx:#ffb340; --laranja-suave:rgba(255,159,10,.20);
+  --alerta:#ff453a; --ok:#30d158; --ouro:#ffffff; --aviso:#ffb340; --aviso-bg:rgba(255,159,10,.12); --alerta-bg:rgba(255,69,58,.16); --ok-bg:rgba(48,209,88,.14);
+  --banner:#000; --banner-tx:#fff; --banner-tx2:#a1a1a6;
+  --iso-top:#1c1c1e; --iso-esq:#141416; --iso-dir:#0c0c0e; --iso-vao:#000000; --iso-linha:rgba(255,255,255,.78); --iso-fant:#3a3a3c;
+  --iso-chao:#111113; --copa-top:#2c2c2e; --copa-esq:#232325; --copa-dir:#1c1c1e; --mel-top:#ffffff; --mel-esq:#d1d1d6; --mel-dir:#a1a1a6;
+  --sombra:0 24px 60px rgba(0,0,0,.6);
+  --f-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,"Segoe UI",sans-serif;
+  --f-serif:var(--f-ui);
 }
 *{box-sizing:border-box}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -59,9 +39,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .iso .f-fant{fill:transparent;stroke:var(--iso-fant);stroke-dasharray:3 2}
 .iso .saca{animation:assentar .5s cubic-bezier(.2,.8,.25,1) both;animation-delay:calc(var(--i) * 70ms + 200ms)}
 @keyframes assentar{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
-.iso-escuro{--iso-top:#2c2b29;--iso-esq:#1f1e1d;--iso-dir:#161615;--iso-vao:#050505;--iso-linha:#b5b4ae;--iso-fant:#4a4945;--iso-chao:#1a1918;--copa-top:#283329;--copa-esq:#1f2a21;--copa-dir:#18211a}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .iso-escuro{--iso-top:#ffffff;--iso-esq:#f0efeb;--iso-dir:#e0dfd9;--iso-vao:#c9c7c0;--iso-linha:#4f4e49;--iso-fant:#c4c3bd;--iso-chao:#f6f5f1;--copa-top:#eaf2e5;--copa-esq:#dbe8d3;--copa-dir:#c8dabd}}
-:root[data-theme="dark"] .iso-escuro{--iso-top:#ffffff;--iso-esq:#f0efeb;--iso-dir:#e0dfd9;--iso-vao:#c9c7c0;--iso-linha:#4f4e49;--iso-fant:#c4c3bd;--iso-chao:#f6f5f1;--copa-top:#eaf2e5;--copa-esq:#dbe8d3;--copa-dir:#c8dabd}
 
 /* Botões */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;text-decoration:none;border-radius:10px;padding:9px 16px;font-weight:500;font-size:.95rem;cursor:pointer;white-space:nowrap}
@@ -342,29 +319,7 @@ tr.inativo td{color:var(--tx3)}
 }
 
 /* ===== Visual 2 (o mesmo do Ora et Labora): cor do tempo litúrgico ou dourado fixo, menos bordas, título em serifa ===== */
-:root{--ac:#9C7412;--ac-tx:#86620C;--ac-suave:rgba(156,116,18,.12);--ac-sobre:#FFFFFF;--sombra-leve:0 1px 2px rgba(20,20,18,.05)}
-:root[data-lit="ouro"],:root[data-lit="branco"]{--ac:#9C7412;--ac-tx:#86620C;--ac-suave:rgba(156,116,18,.12);--ac-sobre:#FFFFFF}
-:root[data-lit="verde"]{--ac:#2F7A4B;--ac-tx:#2A6E43;--ac-suave:rgba(47,122,75,.12);--ac-sobre:#FFFFFF}
-:root[data-lit="roxo"]{--ac:#6B46A8;--ac-tx:#5E3D96;--ac-suave:rgba(107,70,168,.12);--ac-sobre:#FFFFFF}
-:root[data-lit="rosa"]{--ac:#B04F7E;--ac-tx:#9C4570;--ac-suave:rgba(176,79,126,.11);--ac-sobre:#FFFFFF}
-:root[data-lit="vermelho"]{--ac:#B3322A;--ac-tx:#A02C25;--ac-suave:rgba(179,50,42,.10);--ac-sobre:#FFFFFF}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406;--sombra-leve:none}
-  :root:not([data-theme="light"])[data-lit="ouro"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406}
-  :root:not([data-theme="light"])[data-lit="branco"]{--ac:#F1ECDD;--ac-tx:#E5C778;--ac-suave:rgba(229,199,120,.14);--ac-sobre:#1A1A18}
-  :root:not([data-theme="light"])[data-lit="verde"]{--ac:#5FB37E;--ac-tx:#7CC896;--ac-suave:rgba(95,179,126,.14);--ac-sobre:#06140B}
-  :root:not([data-theme="light"])[data-lit="roxo"]{--ac:#A688DB;--ac-tx:#B9A0E6;--ac-suave:rgba(166,136,219,.15);--ac-sobre:#140B22}
-  :root:not([data-theme="light"])[data-lit="rosa"]{--ac:#E592B8;--ac-tx:#EFA9C9;--ac-suave:rgba(229,146,184,.14);--ac-sobre:#22091A}
-  :root:not([data-theme="light"])[data-lit="vermelho"]{--ac:#E2685F;--ac-tx:#EE8A82;--ac-suave:rgba(226,104,95,.14);--ac-sobre:#1E0806}
-}
-:root[data-theme="dark"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406;--sombra-leve:none}
-:root[data-theme="dark"][data-lit="ouro"]{--ac:#D6AE4F;--ac-tx:#E2BE6A;--ac-suave:rgba(214,174,79,.14);--ac-sobre:#1A1406}
-:root[data-theme="dark"][data-lit="branco"]{--ac:#F1ECDD;--ac-tx:#E5C778;--ac-suave:rgba(229,199,120,.14);--ac-sobre:#1A1A18}
-:root[data-theme="dark"][data-lit="verde"]{--ac:#5FB37E;--ac-tx:#7CC896;--ac-suave:rgba(95,179,126,.14);--ac-sobre:#06140B}
-:root[data-theme="dark"][data-lit="roxo"]{--ac:#A688DB;--ac-tx:#B9A0E6;--ac-suave:rgba(166,136,219,.15);--ac-sobre:#140B22}
-:root[data-theme="dark"][data-lit="rosa"]{--ac:#E592B8;--ac-tx:#EFA9C9;--ac-suave:rgba(229,146,184,.14);--ac-sobre:#22091A}
-:root[data-theme="dark"][data-lit="vermelho"]{--ac:#E2685F;--ac-tx:#EE8A82;--ac-suave:rgba(226,104,95,.14);--ac-sobre:#1E0806}
-
+:root{--ac:#ffffff;--ac-tx:#ffffff;--ac-suave:rgba(255,255,255,.13);--ac-sobre:#000000;--sombra-leve:none}
 .app{box-shadow:inset 0 3px 0 var(--ac)}
 .principal{background:transparent;border:0;border-radius:0;margin:0;padding-top:32px}
 .painel,.cartao{border:0;border-radius:16px;box-shadow:var(--sombra-leve)}
@@ -421,9 +376,7 @@ tr.inativo td{color:var(--tx3)}
 .ent-forma{border:0;box-shadow:var(--sombra-leve)}
 
 /* ===== Ajustar finanças e Projeções ===== */
-:root{--serie-1:#2a78d6;--serie-2:#eb6834}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--serie-1:#3987e5;--serie-2:#d95926}}
-:root[data-theme="dark"]{--serie-1:#3987e5;--serie-2:#d95926}
+:root{--serie-1:#ffffff;--serie-2:#8e8e93}
 .aj-form{display:grid;gap:16px;min-width:0}
 .aj-check{display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:400;color:var(--tx)}
 .aj-check input{width:17px;height:17px;accent-color:var(--ac)}
@@ -561,35 +514,199 @@ tr.inativo td{color:var(--tx3)}
 .cx-tab td.cx-conta{text-align:center;vertical-align:middle}
 .cx-tab td.cx-conta input{width:18px;height:18px}
 @media (max-width:640px){ .cx-ed .cx-tab tr{grid-template-columns:1fr 1fr 1.2fr auto auto} .ct{padding:10px 14px;grid-template-columns:auto minmax(0,1fr) auto} .ct .ct-val{grid-column:3;grid-row:1} .ct .btn{grid-column:3;grid-row:2;justify-self:end;margin-top:2px} .ct .ct-nome{grid-column:2;grid-row:1 / span 2} .ct > .ponto{grid-column:1;grid-row:1;align-self:center} }
+
+/* ===== Identidade: ilhas pretas (o conteúdo mora numa ilha preta que desce do topo; botões redondos; branco faz o trabalho; laranja só na ação principal) ===== */
+html,body{background:var(--fundo)}
+body{font-size:15px;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--laranja);outline-offset:2px}
+em{font-style:normal}
+.h2 em,.saudacao em,.forma h3 em,.folha-topo h3 em,.cel-tit em,.vazio em,.toast em,.ent-cit em,.lateral-pe em{font-family:inherit;font-style:normal;font-size:1em;font-weight:inherit;color:inherit}
+
+/* estrutura */
+.app{grid-template-columns:78px minmax(0,1fr);column-gap:12px;padding-right:18px;background:var(--fundo);box-shadow:none}
+.lateral{padding:18px 0 14px 14px;gap:12px;align-items:center;overflow:visible;height:100vh;height:100dvh}
+.marca{display:none}
+.nav{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0}
+.nav-sep{display:block;width:22px;height:1px;background:rgba(255,255,255,.14);margin:2px 0;flex:none}
+.redondo,.nav button{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:48px;height:48px;padding:0;gap:0;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:#000;color:#fff;cursor:pointer;transition:background .15s,transform .12s}
+.redondo svg,.nav button svg{display:block;width:21px;height:21px}
+.redondo:hover,.nav button:hover{background:#1c1c1e}
+.redondo:active,.nav button:active{transform:scale(.95)}
+.nav button[aria-current="true"]{background:#fff;color:#000;border-color:#fff;font-weight:600}
+.redondo.pq{width:36px;height:36px}.redondo.pq svg{width:17px;height:17px}
+.selo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--trilho);color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;font-variant-numeric:tabular-nums}
+.selo.alerta{background:var(--alerta)}
+.lateral-pe{margin-top:auto;padding:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.principal{min-width:0;margin:0 0 12px;padding:18px clamp(16px,2.4vw,28px) 26px;background:linear-gradient(180deg,#000 0%,#050507 70%,#07080c 100%);border:1px solid rgba(255,255,255,.08);border-top:0;border-radius:0 0 32px 32px;box-shadow:var(--sombra)}
+.oracao{max-width:1160px;margin:28px auto 0;font-size:12px;color:var(--tx3)}
+
+/* topo da ilha */
+.topo{align-items:center;margin-bottom:18px;gap:10px 14px}
+.topo-txt{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
+.topo-marca{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.topo-marca svg{width:20px;height:20px}
+.lit{font-size:12px;color:var(--tx3);gap:4px 6px}
+.lit b{color:var(--tx2);font-weight:600}
+.lit-cor{width:7px;height:7px;box-shadow:none}
+.mes{border:0;background:transparent;padding:0;gap:8px}
+.mes .icone-btn{width:36px;height:36px;border:1px solid rgba(255,255,255,.14);background:#000;color:#fff}
+.mes .icone-btn:hover{background:#1c1c1e}
+.mes b{font-weight:700;font-size:15px;min-width:130px}
+
+/* texto: hierarquia pelo peso */
+.h2{font-family:var(--f-ui);font-weight:700;font-size:17px;line-height:1.3;letter-spacing:0}
+.h2 em{color:inherit}
+.intro{font-size:13px;color:var(--tx2)}
+.rot{font-size:15px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tx)}
+.saudacao{font-family:var(--f-ui);font-weight:700;font-size:17px;letter-spacing:0}
+.num small,.tile small,.cx-resumo small{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--tx2)}
+.num b,.grande,.cx-resumo b,.cx-ed-tot{font-family:var(--f-ui);font-weight:700;font-size:22px;letter-spacing:-.01em;line-height:1.2;font-variant-numeric:tabular-nums}
+.tile .grande{font-size:22px}
+.grande small,.tile .grande small{font-family:var(--f-ui);font-size:13px;font-weight:500;color:var(--tx2)}
+.num span{font-size:12.5px}
+.nota{font-size:12.5px}
+.vazio{font-size:14px}
+
+/* quadrados: fundo translúcido, borda de 1 px, sem sombra */
+.painel,.cartao,.forma,.cx-resumo,.ent-forma{background:var(--painel);border:1px solid var(--borda);border-radius:15px;box-shadow:none}
+.painel.fundo,.cartao .forma{background:rgba(255,255,255,.04);border-color:var(--borda)}
+.forma h3,.cartao h4{font-size:15px;font-weight:700}
+.lado{background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible;display:grid;gap:8px}
+.numeros{padding:0;gap:8px}
+.num,.anel-dia{padding:11px 13px;background:var(--painel);border:1px solid var(--borda);border-radius:15px}
+.cel-card{background:var(--painel);border:1px solid var(--borda)!important;border-radius:15px;padding:13px 14px}
+.cel-tit{font-size:15px;font-weight:700}
+.cel-arte{background:transparent;padding:0}
+.sacas{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px}
+.sacas i{height:34px;border-radius:6px;background:var(--trilho)}
+.sacas i.cheia{background:#fff}
+@media (max-width:1180px){.lado{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.numeros{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.lado{grid-template-columns:minmax(0,1fr)}}
+
+/* cartão de estado (citação) */
+.banner{background:var(--painel);border:0;border-radius:18px;min-height:78px;padding:14px 18px 20px;box-shadow:none}
+.banner-texto{max-width:none;gap:6px}
+.banner blockquote{font-family:var(--f-ui);font-size:15px;font-weight:600;line-height:1.45}
+.banner .autor{font-size:13px;color:var(--tx2)}
+.banner .btn{background:var(--sup);color:#fff}
+.banner-arte{display:none}
+.banner-prog{left:18px;right:18px;bottom:8px;height:3px;border-radius:2px;background:var(--trilho);overflow:hidden}
+.banner-prog i{background:#fff}
+
+/* botões */
+.btn{border-radius:999px;font-weight:600;font-size:14px;padding:8px 16px;min-height:34px}
+.btn-escuro{background:#fff;color:#000}
+.btn-escuro:hover{opacity:1;filter:none;background:#e5e5ea}
+.btn-claro{background:var(--sup);color:#fff;border:0}
+.btn-claro:hover{background:var(--sup-2)}
+.btn-p{padding:6px 12px;font-size:13px;border-radius:999px;min-height:30px}
+.btn-acao{background:var(--laranja-suave);color:var(--laranja);font-weight:700}
+.btn-acao:hover{background:rgba(255,159,10,.28)}
+.link{color:var(--tx2);text-decoration-color:rgba(255,255,255,.3)}
+.link:hover{color:#fff}
+.icone-btn{border-radius:50%;color:var(--tx2)}
+.icone-btn:hover{background:var(--sup);color:#fff}
+.toast-acao{background:#fff;color:#000;border-radius:999px}
+
+/* campos viram pílula */
+.campo{background:var(--sup);border:1px solid var(--linha);border-radius:12px;color:#fff}
+input.campo,select.campo{border-radius:999px;padding-left:13px;padding-right:13px}
+.campo:focus{border-color:rgba(255,255,255,.28)}
+select.campo option{background:#1c1c1e;color:#fff}
+label,.rotulo{font-size:12px;font-weight:600}
+.cx-tab .cx-obs{border-style:dashed;background:transparent}
+
+/* abas em texto */
+.seg{border:0;background:transparent;padding:0;gap:16px}
+.seg button{padding:4px 0;background:transparent;color:var(--tx3);font-weight:600;font-size:14px;box-shadow:none;border-radius:0}
+.seg button[aria-pressed="true"]{background:transparent;color:#fff;font-weight:700;box-shadow:none}
+.filtros .seg{background:transparent;box-shadow:none}
+.chip{background:var(--sup);border:0;color:#fff;font-weight:600;font-size:13px}
+.chip[aria-pressed="true"]{background:#fff;color:#000;border:0}
+
+/* selos e marcadores: sem cor própria por caixinha */
+.tag,.tag.cinza{background:var(--sup);color:var(--tx2);font-weight:600}
+.ponto{background:rgba(255,255,255,.55);border-radius:50%;width:8px;height:8px}
+.pill{border-color:rgba(255,255,255,.14);color:var(--tx2)}
+
+/* barras: trilho cinza, parte cheia branca */
+.barra{height:5px;background:var(--trilho)}
+.barra i,.barra.ouro i{background:#fff}
+.barra.alerta i{background:var(--alerta)}
+.anel-dia .trilho{stroke:var(--trilho)}
+.anel-dia .feito{stroke:#fff}
+.anel-dia.passou .feito{stroke:var(--alerta)}
+.circ.on{background:#fff;border-color:#fff;color:#000}
+.circ:hover{border-color:#fff;color:#fff}
+
+/* tabelas e listas */
+th{background:transparent;color:var(--tx3);font-size:11px;letter-spacing:.05em}
+tfoot td{background:transparent;border-top-color:rgba(255,255,255,.28)}
+.dia-rot{background:transparent;color:var(--tx3);letter-spacing:.05em}
+.lc:hover,.cxv summary:hover{background:rgba(255,255,255,.04)}
+.lc.editando{background:rgba(255,255,255,.08)}
+.tab-proj td:first-child,.tab-proj th:first-child{background:#111113}
+.tab-proj th small{color:var(--laranja)}
+.linhas .total{border-top-color:rgba(255,255,255,.28)}
+
+/* gráficos */
+.g-ponto{stroke:#000}
+.g-area{opacity:.07}
+.g-neg{opacity:.08}
+.graf-tip{background:#1c1c1e;border:1px solid rgba(255,255,255,.14);border-radius:13px}
+
+/* avisos, folha e toast */
+.faixa{background:var(--aviso-bg);color:var(--aviso);border-radius:15px}
+.faixa.cinza{background:var(--painel);color:var(--tx2);border:1px solid var(--borda);box-shadow:none}
+.print-zona{border:1.5px dashed rgba(255,255,255,.22);background:transparent;border-radius:15px}
+.print-zona:hover,.print-zona.sobre{border-color:#fff}
+.veu{background:rgba(0,0,0,.6)}
+.folha{background:linear-gradient(180deg,#000 0%,#050507 70%,#07080c 100%);border:1px solid rgba(255,255,255,.10);border-radius:24px;box-shadow:var(--sombra)}
+.folha-topo h3{font-size:16px;font-weight:700}
+.toast{background:#1c1c1e;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:var(--sombra)}
+
+/* entrada */
+.ent-marca{font-family:var(--f-ui);font-weight:700;font-size:28px}
+.aj-cores{display:none}
+.campos > label{align-self:start}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding:0;column-gap:0}
+  .principal{order:1;margin:0 8px;border-radius:0 0 26px 26px;padding:16px max(14px,env(safe-area-inset-right,0px)) 24px max(14px,env(safe-area-inset-left,0px));border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08)}
+  .lateral{order:2;position:sticky;top:auto;bottom:0;z-index:20;height:auto;flex-direction:row;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--fundo) 72%,rgba(24,24,27,0))}
+  .nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:3px;scrollbar-width:none;flex:1 1 auto;min-width:0}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:44px;height:44px}
+  .nav-sep{width:1px;height:22px;align-self:center}
+  .lateral-pe{display:flex;margin:0;flex-direction:row}
+  .lateral-pe .redondo{width:44px;height:44px}
+  .topo{margin-bottom:14px}
+}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
 <div class="app" id="app" hidden>
   <aside class="lateral">
-    <div class="marca">
-      <span id="marca-arte"></span>
-      <div><div class="marca-nome">Celeiro</div><div class="marca-sub">Ora et Labora · finanças</div></div>
-    </div>
+    <div class="marca"><span id="marca-arte"></span></div>
     <nav class="nav" id="nav" aria-label="Seções"></nav>
     <div class="lateral-pe">
-      <p><em>São José, provedor da Sagrada Família,</em> rogai por nós.</p>
-      <div class="quem"><b id="quem-nome"></b><button class="link" data-act="sair">Sair</button></div>
-      <button class="link" data-act="tema" id="tema-btn" style="justify-self:start">Tema: automático</button>
+      <button class="redondo" data-act="sair" id="sair-btn" aria-label="Sair" title="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/></svg><span class="visually-hidden" id="quem-nome"></span></button>
     </div>
   </aside>
   <main class="principal">
     <div class="topo">
-      <div class="topo-txt"><h1 class="visually-hidden" id="saudacao">Celeiro</h1><p class="lit" id="lit-hoje"></p></div>
+      <div class="topo-txt"><h1 class="visually-hidden" id="saudacao">Celeiro</h1><span class="topo-marca" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V10l4-5h10l4 5v11z"/><path d="M9 21v-6h6v6M9 15l6 6M15 15l-6 6"/></svg>Celeiro</span><p class="lit" id="lit-hoje"></p></div>
       <div class="topo-dir">
         <div class="mes" role="group" aria-label="Mês">
           <button class="icone-btn" data-act="mes" data-n="-1" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
           <b id="mes-nome">—</b>
           <button class="icone-btn" data-act="mes" data-n="1" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
         </div>
-        <button class="btn btn-escuro" data-act="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Lançar gasto</button>
+        <button class="btn btn-acao" data-act="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Novo gasto</button>
       </div>
     </div>
     <div id="vista"></div>
+    <p class="oracao">São José, provedor da Sagrada Família, rogai por nós.</p>
   </main>
 </div>
 <div id="camada"></div>
@@ -756,7 +873,7 @@ var I = {
   cx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v8l9 4 9-4V8M12 12v8"/></svg>',
   cartao:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>',
   celeiro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6M12 1v3M10.5 2.5h3"/></svg>',
-  empresa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></svg>',
+  empresa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18 4.5 7l5 5L12 5l2.5 7 5-5L21 18z"/><path d="M3 21h18"/></svg>',
   exame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 8h10"/></svg>',
   ajustar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M3 15l2-8 2 8a2 2 0 0 1-4 0zM17 15l2-8 2 8a2 2 0 0 1-4 0z"/></svg>',
   projecoes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></svg>',
@@ -969,10 +1086,11 @@ function render(){
 function renderNav(){
   var alertas = S.cfg ? contarAlertas() : 0;
   document.getElementById('nav').innerHTML = VISTAS.map(function(v,i){
-    var q='';
-    if(v[0]==='caixinhas' && alertas) q='<span class="qtd alerta">'+alertas+'</span>';
-    if(v[0]==='lancamentos' && S.cfg) q='<span class="qtd">'+lancDoMes(S.mes).length+'</span>';
-    return (v[0]==='celeiro'?'<p class="nav-rotulo">Guardar e trabalhar</p>':'')+'<button data-act="ver" data-v="'+v[0]+'" aria-current="'+(S.view===v[0])+'">'+I[v[2]]+'<span>'+v[1]+'</span>'+q+'</button>';
+    var q='', nq=0;
+    if(v[0]==='caixinhas' && alertas){ q='<span class="selo alerta" aria-hidden="true">'+alertas+'</span>'; nq=alertas; }
+    if(v[0]==='lancamentos' && S.cfg){ nq=lancDoMes(S.mes).length; if(nq) q='<span class="selo" aria-hidden="true">'+(nq>99?'99+':nq)+'</span>'; }
+    var dica = v[1] + (v[0]==='caixinhas'&&alertas ? ' ('+alertas+' passou do previsto)' : v[0]==='lancamentos'&&nq ? ' ('+nq+' no mês)' : '');
+    return (v[0]==='celeiro'?'<span class="nav-sep" aria-hidden="true"></span>':'')+'<button data-act="ver" data-v="'+v[0]+'" aria-current="'+(S.view===v[0])+'" aria-label="'+esc(dica)+'" title="'+esc(dica)+'">'+I[v[2]]+q+'</button>';
   }).join('');
 }
 function contarAlertas(){ return (cfg().caixinhas||[]).filter(function(cx){ var p=prevCx(cx); return p>0 && gastoCx(cx,S.mes)>p; }).length; }
@@ -982,7 +1100,7 @@ var bannerTimer=null, citIdx=Math.floor(Math.random()*CITACOES.length);
 function htmlBanner(){
   var c=CITACOES[citIdx%CITACOES.length];
   return '<section class="banner" aria-label="Citação"><div class="banner-texto"><div class="cit" id="cit"><blockquote>'+esc(c[0])+'</blockquote><p class="autor">'+esc(c[1])+'</p></div>'+
-    '<button class="btn btn-p" data-act="novo">Lançar gasto de hoje</button></div><div class="banner-arte" aria-hidden="true">'+cena({cheias:Math.round(12*progressoFamilia()),cls:'',semChao:false,label:''})+'</div><div class="banner-prog"><i id="prog"></i></div></section>';
+    '<button class="btn btn-claro btn-p" data-act="novo">Lançar gasto de hoje</button></div><div class="banner-arte" aria-hidden="true">'+cena({cheias:Math.round(12*progressoFamilia()),cls:'',semChao:false,label:''})+'</div><div class="banner-prog"><i id="prog"></i></div></section>';
 }
 function iniciarBanner(){
   clearInterval(bannerTimer);
@@ -1013,7 +1131,7 @@ function vInicio(){
     '<div class="num"><small>Guardado no mês</small><b>'+brl0(guardado)+'</b><span>meta de '+brl0(metaGuardar)+'</span></div>'+
     '<div class="num"><small>Recebido da Crown</small><b>'+brl0(fat.recebido)+'</b><span>de '+brl0(fat.previsto)+' previstos</span></div>'+
   '</div><div class="cel-card"><div class="cel-topo"><p class="cel-tit">Celeiro da <em>família</em></p><span class="cel-n">'+cheias+'/12 sacas</span></div>'+
-    '<div class="cel-arte">'+cena({cheias:cheias,label:'Celeiro com '+cheias+' de 12 sacas'})+'</div>'+
+    '<div class="cel-arte"><div class="sacas" role="img" aria-label="Celeiro com '+cheias+' de 12 sacas">'+Array.apply(null,Array(12)).map(function(_,i){ return '<i'+(i<cheias?' class="cheia"':'')+'></i>'; }).join('')+'</div></div>'+
     (famF?'<p class="cel-txt">Reserva de emergência: <b>'+brl0(saldoFundo(famF.id))+'</b> de '+brl0(famF.meta)+'. Cada saca vale '+brl0(num(famF.meta)/12)+'.</p>':'<p class="cel-txt">Crie a reserva da família no Celeiro.</p>')+
     '<div class="acoes"><button class="btn btn-claro btn-p" data-act="ver" data-v="celeiro">Guardar no celeiro</button><button class="btn btn-claro btn-p" data-act="ver" data-v="ajustar">Ajustar saldos</button></div></div></aside>';
 
@@ -1569,9 +1687,6 @@ function vAjustes(){
   var c=cfg();
   var ltA=LIT.dia(hoje()), ouroA=c.corApp==='ouro';
   return '<div class="pagina"><div><h2 class="h2"><em>Ajustes</em></h2><p class="intro">Os números que sustentam os cálculos. Mude quando algo mudar de verdade.</p></div>'+
-    '<div class="forma"><h3>Cor do <em>app</em></h3><div class="aj-cores">'+
-      '<label class="aj-cor"><input type="radio" name="cor-app" value="lit"'+(ouroA?'':' checked')+'><span class="bolas"><i style="background:#2F7A4B"></i><i style="background:#6B46A8"></i><i style="background:#D6AE4F"></i><i style="background:#B3322A"></i></span><span><b>Seguir o tempo litúrgico</b><br><small>Hoje: '+esc(ltA.cor)+'</small></span></label>'+
-      '<label class="aj-cor"><input type="radio" name="cor-app" value="ouro"'+(ouroA?' checked':'')+'><span class="bolas"><i style="background:#D6AE4F"></i></span><span><b>Dourado fixo</b><br><small>Não muda durante o ano</small></span></label></div></div>'+
     '<div class="forma"><h3>Cartão de crédito</h3><div class="campos">'+campoCfg('Dia em que a fatura fecha','cartao.fecha',c.cartao.fecha)+campoCfg('Dia do vencimento','cartao.vence',c.cartao.vence)+'</div></div>'+
     '<div class="forma"><h3>Pró-labore</h3><div class="campos">'+campoCfg('Custo da casa','proLabore.vida',c.proLabore.vida)+campoCfg('Para guardar','proLabore.guardar',c.proLabore.guardar,'20% do pró-labore é o mínimo saudável')+'</div></div>'+
     '<div class="forma"><h3>Crown</h3><div class="campos">'+campoCfg('Imposto hoje (%)','impostoPct',c.impostoPct,'MEI: deixe 0')+campoCfg('Imposto do Simples (%)','impostoSimuladoPct',c.impostoSimuladoPct)+campoCfg('Reserva mínima (%)','reservaEmpresa.minPct',c.reservaEmpresa.minPct)+campoCfg('Reserva realista (%)','reservaEmpresa.metaPct',c.reservaEmpresa.metaPct)+campoCfg('Reserva ideal (%)','reservaEmpresa.idealPct',c.reservaEmpresa.idealPct)+'</div></div>'+
@@ -1940,11 +2055,9 @@ document.addEventListener('drop',function(ev){ var z=ev.target.closest&&ev.targe
 document.addEventListener('paste',function(ev){ if(!S.imgOk||!S.cfg) return; var fs=Array.prototype.filter.call((ev.clipboardData&&ev.clipboardData.files)||[],function(f){return /^image\//.test(f.type);}); if(fs.length){ ev.preventDefault(); lerPrint(fs); } });
 
 /* ---------- Tema ---------- */
-var TEMAS=['auto','light','dark'], NOMES_TEMA={auto:'automático',light:'claro',dark:'escuro'};
-function aplicarTema(t){ if(t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); document.getElementById('tema-btn').textContent='Tema: '+NOMES_TEMA[t]; }
-var temaAtual='auto'; try{ temaAtual=localStorage.getItem('celeiro-tema')||'auto'; }catch(e){}
-function trocarTema(){ temaAtual=TEMAS[(TEMAS.indexOf(temaAtual)+1)%3]; try{ localStorage.setItem('celeiro-tema',temaAtual); }catch(e){} aplicarTema(temaAtual); }
-if(temaAtual!=='auto') aplicarTema(temaAtual);
+function trocarTema(){}
+try{ localStorage.removeItem('celeiro-tema'); }catch(e){}
+document.documentElement.removeAttribute('data-theme');
 
 /* ---------- Início ---------- */
 document.getElementById('marca-arte').innerHTML=cena({cheias:3,total:4,u:5,semChao:true,label:''});
@@ -2110,7 +2223,7 @@ function importar(corpo){
 }
 function entrar(usuario){
   S.usuario=usuario;
-  document.getElementById('quem-nome').textContent=usuario.nome;
+  document.getElementById('quem-nome').textContent=usuario.nome; var sb=document.getElementById('sair-btn'); if(sb){ sb.title='Sair ('+usuario.nome+')'; sb.setAttribute('aria-label','Sair ('+usuario.nome+')'); }
   document.getElementById('entrada').hidden=true; document.getElementById('app').hidden=false;
   render();
   var db=criarBanco(); S.db=db;
