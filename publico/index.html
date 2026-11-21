@@ -682,6 +682,11 @@ tfoot td{background:transparent;border-top-color:rgba(255,255,255,.28)}
   .lateral-pe .redondo{width:44px;height:44px}
   .topo{margin-bottom:14px}
 }
+.plano-col{display:grid;gap:14px;align-content:start;min-width:0}
+.faixa.partida{align-items:flex-start;justify-content:space-between;flex-wrap:wrap;font-size:13px}
+.faixa.partida b{color:var(--tx)}
+.faixa.partida ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+.faixa.partida .link{font-size:12.5px}
 </style>
 
 <div class="entrada" id="entrada"><div class="ent-centro"><div class="ent-arte" id="ent-arte"></div><p class="ent-sub">Abrindo o celeiro…</p></div></div>
@@ -991,17 +996,17 @@ function faturamento(){
   avulsos().forEach(function(a){ prev+=num(a.valor); if(a.recebido) rec+=num(a.valor); });
   return {previsto:prev, recebido:rec};
 }
-/* Faturamento do mês aberto em partes, para a projeção: o que falta receber, o que já entrou antes do saldo informado e o que entrou depois */
+/* Faturamento do mês corrente (o de hoje, mesmo com outro mês escolhido no topo) em partes, para a projeção: o que falta receber, o que já entrou antes do saldo informado e o que entrou depois */
 function faturamentoDetalhe(sk){
-  var d={previsto:0,pendente:0,recebidoAntes:0,recebidoDepois:0,isento:0}, q=(S.receb&&S.receb.quando)||{};
+  var rb=recebDeHoje(), itens=rb.itens||{}, d={previsto:0,pendente:0,recebidoAntes:0,recebidoDepois:0,isento:0}, q=rb.quando||{};
   function conta(valor,st,quando){
     if(st==='isento'){ d.isento+=valor; return; }
     d.previsto+=valor;
     if(st!=='recebido'){ d.pendente+=valor; return; }
     if(sk && quando && quando>(sk.em||sk.data)) d.recebidoDepois+=valor; else d.recebidoAntes+=valor;
   }
-  clientesAtivos().forEach(function(c){ conta(num(c.valor),statusCliente(c),q[c.id]); });
-  avulsos().forEach(function(a){ conta(num(a.valor),a.recebido?'recebido':'pendente',a.em); });
+  clientesAtivos().forEach(function(c){ conta(num(c.valor),itens[c.id]||'pendente',q[c.id]); });
+  (rb.avulsos||[]).forEach(function(a){ conta(num(a.valor),a.recebido?'recebido':'pendente',a.em); });
   return d;
 }
 function divide(c){
@@ -1032,6 +1037,12 @@ function assinarReceb(){
   mesReceb=S.mes; if(subReceb) subReceb(); S.receb=null;
   subReceb = S.db.doc('recebimentos/'+S.mes).onSnapshot(function(s){ S.receb = s.exists ? JSON.parse(JSON.stringify(s.data())) : {itens:{},avulsos:[]}; pedirRender(); }, erroDb);
 }
+var subRecebHoje=null;
+function assinarRecebHoje(){
+  if(!S.db || subRecebHoje) return;
+  subRecebHoje = S.db.doc('recebimentos/'+ymDe(hoje())).onSnapshot(function(s){ S.recebHoje = s.exists ? JSON.parse(JSON.stringify(s.data())) : {itens:{},avulsos:[]}; pedirRender(); }, erroDb);
+}
+function recebDeHoje(){ return (S.mes===ymDe(hoje()) ? S.receb : S.recebHoje) || {itens:{},avulsos:[]}; }
 function erroDb(e){ toast('Não consegui ler os dados agora', e && e.code==='revoked' ? 'O acesso a este painel mudou.' : 'Recarregue a página em instantes.'); }
 
 var cfgTimer=null, cadeia=Promise.resolve();
@@ -1376,8 +1387,23 @@ function vEmpresa(){
     '<div><span>Imposto ('+pct(imp)+')</span><b>−'+brl0(impV)+'</b></div>'+
     '<div><span>Pró-labore: casa '+brl0(pl.vida)+' + guardar '+brl0(pl.guardar)+'</span><b>−'+brl0(proLabore())+'</b></div>'+
     '<div><span>Reserva da Crown ('+pct(num(R.metaPct))+')</span><b>−'+brl0(resV)+'</b></div>'+
-    '<div class="total'+(sobra<0?' neg':'')+'"><span>'+(sobra<0?'Falta':'Sobra')+'</span><b>'+brl0(Math.abs(sobra))+'</b></div></div>'+
-    '<p class="nota">Recebido até agora: <b>'+brl0(fat.recebido)+'</b> de '+brl0(fat.previsto)+'.</p></div>';
+    '<div class="total'+(sobra<0?' neg':'')+'"><span>'+(sobra<0?'Falta na Crown':'Sobra na Crown')+'</span><b>'+brl0(Math.abs(sobra))+'</b></div></div>'+
+    '<p class="nota">Recebido até agora: <b>'+brl0(fat.recebido)+'</b> de '+brl0(fat.previsto)+'. Esta conta olha só a Crown; a da casa está logo abaixo.</p></div>';
+  /* A mesma conta com a casa junto: o que entra dos clientes contra tudo o que sai no mês, da Crown e da casa */
+  var J=(function(){
+    var ym=S.mes, venc=dataVencto(ym), aj=ultimoAjuste('fatura',ym), lanc=comprasFatura(ym), orc=prevTotal(), noC=Math.min(orc,gastoNormalCartao());
+    var fatura = (aj || venc<hoje()) ? faturaTotal(ym) : Math.max(lanc,noC), fora=Math.max(0,orc-noC);
+    var total=base-custos-impV-fatura-fora, casa=fatura+fora, faltaCasa=casa-proLabore();
+    return {venc:venc, informada:!!aj, fatura:fatura, fora:fora, orc:orc, noC:noC, total:total, casa:casa, faltaCasa:faltaCasa};
+  })();
+  var juntas='<div class="cartao"><h4>Casa e Crown juntas em '+nomeMesCurto(S.mes)+'</h4><div class="linhas">'+
+    '<div><span>Entra dos clientes</span><b>'+brl0(base)+'</b></div>'+
+    '<div><span>Custos'+(impV?' e imposto':'')+' da Crown</span><b>−'+brl0(custos+impV)+'</b></div>'+
+    '<div><span>Fatura do cartão (vence '+dataBR(J.venc)+(J.informada?'':', estimada')+')</span><b>−'+brl0(J.fatura)+'</b></div>'+
+    '<div><span>Gastos da casa fora do cartão</span><b>−'+brl0(J.fora)+'</b></div>'+
+    '<div class="total'+(J.total<0?' neg':'')+'"><span>'+(J.total<0?'Falta no mês':'Sobra no mês')+'</span><b>'+brl0(Math.abs(J.total))+'</b></div></div>'+
+    '<p class="nota">Antes de guardar em qualquer reserva. Do orçamento da casa de '+brl0(J.orc)+', '+brl0(J.noC)+' vão no cartão e só saem na fatura do mês seguinte.</p>'+
+    '<p class="nota">A casa precisa de <b>'+brl0(J.casa)+'</b> em '+nomeMesCurto(S.mes)+' e o pró-labore é de '+brl0(proLabore())+': '+(J.faltaCasa>0.5?'<b class="perigo">faltam '+brl0(J.faltaCasa)+'</b> na casa, que só fecham com a sobra da Crown ou com a reserva.':'cobre, com folga de '+brl0(-J.faltaCasa)+'.')+'</p></div>';
   function mt(rot,valor,obs){ var fr=valor?Math.min(1,base/valor):0; return '<div class="meta"><div class="meta-topo"><span>'+rot+'</span><b>'+brl0(valor)+'</b></div><div class="barra'+(base>=valor?'':' ouro')+'"><i style="width:'+(fr*100).toFixed(1)+'%"></i></div><p class="nota">'+(base>=valor?'Batido com o previsto de '+nomeMesCurto(S.mes)+'.':'Faltam '+brl0(valor-base)+'.')+(obs?' '+obs:'')+'</p></div>'; }
   var metas='<div class="cartao"><h4>Faturamento necessário</h4><div class="metas">'+
     mt('Mínimo (reserva de '+pct(num(R.minPct))+')',metaFaturamento(num(R.minPct),imp))+
@@ -1425,7 +1451,7 @@ function vEmpresa(){
   var custosL=(cfg().custosEmpresa||[]).map(function(c,i){ return '<tr><td><input class="campo" data-cfg="custosEmpresa.'+i+'.nome" value="'+esc(c.nome)+'" aria-label="Custo">'+(c.nota?'<small class="nota">'+esc(c.nota)+'</small>':'')+'</td><td class="n"><input class="campo num" data-cfg="custosEmpresa.'+i+'.valor" data-tipo="num" value="'+String(num(c.valor)).replace('.',',')+'" aria-label="Valor"></td><td class="n"><button class="icone-btn" data-act="custo-rm" data-i="'+i+'" aria-label="Remover">'+I.x+'</button></td></tr>'; }).join('');
 
   return '<div class="pagina"><div><h2 class="h2">Agência <em>Crown</em></h2><p class="intro">A empresa é uma terceira pessoa: paga os custos, o seu pró-labore e guarda a própria reserva. O que sobra não é dinheiro da casa.</p></div>'+
-    '<div class="plano">'+plano+metas+'</div>'+
+    '<div class="plano"><div class="plano-col">'+plano+juntas+'</div>'+metas+'</div>'+
     '<section class="secao"><div class="secao-topo"><p class="rot">Clientes em '+nomeMesCurto(S.mes)+' · '+brl0(fat.previsto)+' previstos</p>'+
       '<div class="seg" role="group" aria-label="Ordenar clientes"><button data-act="ordem-cli" data-o="dia" aria-pressed="'+(ordem==='dia')+'">Por dia</button><button data-act="ordem-cli" data-o="valor" aria-pressed="'+(ordem==='valor')+'">Por valor</button></div></div>'+
       '<div class="painel"><div class="tab-w"><table><thead><tr><th>Cliente</th><th>Serviço</th><th class="n">Mensal</th><th class="n">Dia</th><th>'+nomeMesCurto(S.mes)+'</th><th></th></tr></thead><tbody>'+linhasCli+linhasAv+'</tbody></table></div></div>'+
@@ -1468,13 +1494,13 @@ function vExame(){
 function valorCampo(v){ return v==null ? '' : String(Math.round(v*100)/100).replace('.',','); }
 function vAjustar(){
   var hj=hoje(), ymMes=ymDe(hj), ymP=ymFaturaAPagar(), ymN=addMes(ymP,1);
-  var sc=ultimoAjuste('saldo','casa'), sk=ultimoAjuste('saldo','crown'), pl=ultimoAjuste('prolabore',ymMes);
+  var sc=ultimoAjuste('saldo','casa'), sk=ultimoAjuste('saldo','crown'), pl=ultimoAjuste('prolabore',ymMes), cuA=ultimoAjuste('custos',ymMes);
   function quando(a){ return a ? 'Último: '+brl(a.valor)+' em '+dataBR(a.data) : 'Ainda não informado'; }
   function campo(id,rot,ajuda,atual){ return '<label>'+rot+'<input class="campo num" id="'+id+'" inputmode="decimal" placeholder="'+(atual!=null?valorCampo(atual):'0,00')+'" autocomplete="off"><small class="nota">'+ajuda+'</small></label>'; }
   var suspeitos=S.lanc.filter(function(l){ return l.valor>=5000 && (ymDe(l.data)===ymMes || ymDe(l.data)===addMes(ymMes,-1)); }).sort(function(a,b){ return b.valor-a.valor; });
   var est=gastoNormalCartaoEstimado(), normalCfg=num(cfg().cartao&&cfg().cartao.normal);
   var hist=[].concat(
-    S.ajustes.filter(function(a){ return a.tipo==='saldo' || a.tipo==='fatura'; }).map(function(a){ return {em:a.em, data:a.data, id:a.id, col:'ajustes', txt:(a.tipo==='saldo'?(a.ref==='casa'?'Saldo da conta da casa':'Saldo da conta da Crown'):'Fatura que vence '+dataBR(dataVencto(a.ref))), val:a.valor}; }),
+    S.ajustes.filter(function(a){ return a.tipo==='saldo' || a.tipo==='fatura' || a.tipo==='custos'; }).map(function(a){ return {em:a.em, data:a.data, id:a.id, col:'ajustes', txt:(a.tipo==='saldo'?(a.ref==='casa'?'Saldo da conta da casa':'Saldo da conta da Crown'):a.tipo==='custos'?'Custos da Crown a pagar em '+nomeMesCurto(a.ref):'Fatura que vence '+dataBR(dataVencto(a.ref))), val:a.valor}; }),
     S.movs.filter(function(m){ return m.tipo==='ajuste'; }).map(function(m){ var f=acharFundo(m.fundo)||{}; return {em:m.data+'T23:59', data:m.data, id:m.id, col:'movimentos', txt:'Saldo de '+(f.nome||'reserva')+' ('+(m.valor<0?'−':'+')+brl(Math.abs(m.valor))+')', val:null}; })
   ).sort(function(a,b){ return String(b.em).localeCompare(String(a.em)); }).slice(0,15);
   return '<div class="pagina"><div><h2 class="h2">Ajustar <em>finanças</em></h2><p class="intro">Acerte os números do Celeiro com o que o banco mostra hoje. Ajuste não conta como gasto nem como dinheiro guardado no mês. Preencha só o que mudou; o resto fica como está.</p></div>'+
@@ -1483,6 +1509,7 @@ function vAjustar(){
     '<div class="forma"><h3>Contas no <em>banco</em></h3><div class="campos">'+
       campo('aj-casa','Saldo da conta da casa hoje',quando(sc),sc?sc.valor:null)+
       campo('aj-crown','Saldo da conta da Crown hoje',quando(sk),sk?sk.valor:null)+
+      campo('aj-custos','Custos da Crown de '+nomeMesCurto(ymMes)+' ainda a pagar',(cuA?'Último: '+brl(cuA.valor)+' em '+dataBR(cuA.data)+'. ':'')+'Do total de '+brl0(custoEmpresa())+' do mês. Sem informar, a projeção desconta o total.',cuA?cuA.valor:custoEmpresa())+
     '</div><label class="aj-check"><input type="checkbox" id="aj-pl"'+(pl&&pl.valor===1?' checked':'')+'> O pró-labore de '+nomeMesCurto(ymMes)+' já entrou na conta da casa</label></div>'+
     '<div class="forma"><h3>Cartão de <em>crédito</em></h3><div class="campos">'+
       campo('aj-fat0','Fatura que vence '+dataBR(dataVencto(ymP)),'O Celeiro soma '+brl(comprasFatura(ymP))+' em compras lançadas'+(ultimoAjuste('fatura',ymP)?'; com o último ajuste, '+brl(faturaTotal(ymP)):''),faturaTotal(ymP))+
@@ -1505,6 +1532,7 @@ function calcProjecao(){
   var crownF=fundos().filter(function(f){return f.tipo==='empresa';})[0];
   var imp=num(cfg().impostoPct), resPct=num(cfg().reservaEmpresa.metaPct), custos=custoEmpresa(), ticket=num(cfg().metaClientes.ticketMedio);
   var baseFat=soma(clientesAtivos(),function(c){ return num(c.valor); });
+  var custosAj=ultimoAjuste('custos',ym0), custos0=custosAj?Math.max(0,num(custosAj.valor)):custos;
   /* Fatura que vence em cada mês: a informada em Ajustar finanças (mais as compras lançadas depois); sem informação, o que o orçamento põe no cartão */
   function faturaQueVence(ym,i){
     var venc=dataVencto(ym);
@@ -1518,8 +1546,8 @@ function calcProjecao(){
   var foraJa=soma(lancDoMes(ym0).filter(function(l){ return l.forma!=='credito'; }),function(l){ return l.valor; });
   var saldoCasa=sc?sc.valor:0, reservaFam=fam?saldoFundo(fam.id):0, reservaCrown=crownF?saldoFundo(crownF.id):0, saldoCrown=sk?sk.valor:0, linhas=[];
   var fd=faturamentoDetalhe(sk), fat0={previsto:fd.previsto};
-  for(var i=0;i<H;i++){
-    var ym=addMes(ym0,i);
+  for(var i=0;i<=H;i++){
+    var ym=addMes(ym0,i), custosM=i===0?custos0:custos;
     /* ---- Casa ---- */
     var entra=(i===0&&plRec)?0:pl;
     var fatura=faturaQueVence(ym,i);
@@ -1537,16 +1565,16 @@ function calcProjecao(){
     /* ---- Crown ---- */
     var fat=i===0 ? (sk ? fd.pendente+fd.recebidoDepois : fat0.previsto) : baseFat+(num(P.novos)*i*ticket);
     var plC=(i===0&&plRec)?0:pl;
-    var imposto=fat*imp/100, resultado=fat-custos-imposto-plC;
+    var imposto=fat*imp/100, resultado=fat-custosM-imposto-plC;
     saldoCrown+=resultado;
     var guardarC=0, tirarC=0;
     if(saldoCrown>0){ var tetoC=fat*resPct/100; if(crownF&&num(crownF.meta)) tetoC=Math.min(tetoC,Math.max(0,num(crownF.meta)-reservaCrown)); guardarC=Math.min(tetoC,saldoCrown); }
     else if(saldoCrown<0){ tirarC=Math.min(reservaCrown,-saldoCrown); }
     saldoCrown+=tirarC-guardarC; reservaCrown+=guardarC-tirarC;
     linhas.push({ym:ym, entra:entra, fatura:fatura.valor, faturaVenc:fatura.venc, faturaInf:!!fatura.informada, fora:fora, guardar:guardar, tirar:tirar, saldoCasa:saldoCasa, reservaFam:reservaFam,
-      fat:fat, custos:custos, imposto:imposto, pl:plC, resultado:resultado, guardarC:guardarC, tirarC:tirarC, saldoCrown:saldoCrown, reservaCrown:reservaCrown});
+      fat:fat, custos:custosM, imposto:imposto, pl:plC, resultado:resultado, guardarC:guardarC, tirarC:tirarC, saldoCrown:saldoCrown, reservaCrown:reservaCrown});
   }
-  return {linhas:linhas, fd:fd, foraJa:foraJa, sc:sc, sk:sk, plRec:plRec, orc:orc, noCartao:noCartao, foraCartao:foraCartao, modo:modo, fam:fam, famMeta:famMeta, famMensal:famMensal, crownF:crownF,
+  return {linhas:linhas, fd:fd, foraJa:foraJa, sc:sc, sk:sk, plRec:plRec, pl:pl, custosCheio:custos, custos0:custos0, custosAj:custosAj, orc:orc, noCartao:noCartao, foraCartao:foraCartao, modo:modo, fam:fam, famMeta:famMeta, famMensal:famMensal, crownF:crownF,
     inicioCasa:sc?sc.valor:0, inicioCrownConta:sk?sk.valor:0, inicioFam:fam?saldoFundo(fam.id):0, inicioCrown:crownF?saldoFundo(crownF.id):0};
 }
 function rotMes(ym,i){ var p=ym.split('-'); var n=MESES[Number(p[1])-1].slice(0,3); return (i===0||p[1]==='01') ? n+' '+p[0].slice(2) : n; }
@@ -1614,6 +1642,15 @@ function vProjecoes(){
   var mediaCrown=soma(L,function(l){return l.resultado;})/L.length;
   L.forEach(function(l){ l.juntas=l.saldoCasa+l.saldoCrown; l.tudo=l.juntas+(R.fam?l.reservaFam:0)+(R.crownF?l.reservaCrown:0); });
   var idade=R.sc?Math.round((new Date(hj)-new Date(R.sc.data))/864e5):null;
+  var idadeK=R.sk?Math.round((new Date(hj)-new Date(R.sk.data))/864e5):null, velhos=[];
+  if(idade!=null && idade>5) velhos.push('O saldo da casa é de '+dataBR(R.sc.data)+' (há '+idade+' dias)');
+  if(idadeK!=null && idadeK>5) velhos.push((velhos.length?'o':'O')+' saldo da Crown é de '+dataBR(R.sk.data)+' (há '+idadeK+' dias)');
+  var mes0=nomeMesCurto(L[0].ym);
+  var partida='<div class="faixa cinza partida"><div><b>De onde a conta parte (resto de '+mes0+')</b><ul>'+
+    '<li>Conta da casa: <b>'+brl0(R.inicioCasa)+'</b>'+(R.sc?' em '+dataBR(R.sc.data):' (não informado)')+'. Conta da Crown: <b>'+brl0(R.inicioCrownConta)+'</b>'+(R.sk?' em '+dataBR(R.sk.data):' (não informado)')+'.</li>'+
+    '<li>Pró-labore de '+mes0+': <b>'+(R.plRec?'já entrou na casa':'ainda vai entrar na casa ('+brl0(R.pl)+')')+'</b>. <button class="link" data-act="pl-alternar">'+(R.plRec?'Na verdade ainda não entrou':'Na verdade já entrou')+'</button></li>'+
+    '<li>Clientes de '+mes0+' ainda a receber: <b>'+brl0(L[0].fat)+'</b>. Custos da Crown ainda a pagar: <b>'+brl0(R.custos0)+'</b>'+(R.custosAj?'':' (o mês inteiro; se já pagou parte, informe em Ajustar finanças)')+'.</li>'+
+    '</ul></div><button class="btn btn-claro btn-p" data-act="ver" data-v="ajustar">Ajustar finanças</button></div>';
   function seg(k,v,txt){ return '<button data-act="proj" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(String(k==='modo'?R.modo:P[k])===String(v))+'">'+txt+'</button>'; }
   var cor1='var(--serie-1)', cor2='var(--serie-2)';
   /* Os gráficos começam no saldo de hoje, para mostrar o caminho até o fim de cada mês */
@@ -1642,7 +1679,7 @@ function vProjecoes(){
     (R.fam?linha('Guardar na reserva (só se sobrar)','guardar',{neg:true})+linha('Tirar da reserva (para cobrir a falta)','tirar',{seHouver:true}):'')+
     linha('Conta da casa no fim do mês','saldoCasa',{forte:true,alertaNeg:true})+(R.fam?linha('Reserva da família','reservaFam'):'')+
     '<tr class="grupo-t"><td colspan="'+(L.length+1)+'">Crown</td></tr>'+
-    linhaNota('Faturamento','fat',false,notaFat)+linha('Custos','custos',{neg:true})+(num(cfg().impostoPct)?linha('Imposto','imposto',{neg:true}):'')+linha('Pró-labore','pl',{neg:true})+
+    linhaNota('Faturamento','fat',false,notaFat)+linhaNota('Custos','custos',true,R.custosAj&&Math.abs(R.custos0-R.custosCheio)>0.5?['faltam pagar, de '+brl0(R.custosCheio)]:[])+(num(cfg().impostoPct)?linha('Imposto','imposto',{neg:true}):'')+linha('Pró-labore','pl',{neg:true})+
     linha('Resultado do mês','resultado',{alertaNeg:true})+linha('Guardar na reserva (só se sobrar)','guardarC',{neg:true})+linha('Tirar da reserva (para cobrir a falta)','tirarC',{seHouver:true})+
     linha('Conta da Crown no fim do mês','saldoCrown',{forte:true,alertaNeg:true})+(R.crownF?linha('Reserva da Crown','reservaCrown'):'')+
     '<tr class="grupo-t"><td colspan="'+(L.length+1)+'">Tudo junto</td></tr>'+
@@ -1657,15 +1694,16 @@ function vProjecoes(){
       'Crown: '+(piorC.saldoCrown<0?'faltam '+brl0(-piorC.saldoCrown)+' em '+nomeMesCurto(piorC.ym):'no mínimo '+brl0(piorC.saldoCrown)+' ('+nomeMesCurto(piorC.ym)+')')+'.</p></div>'+
     (R.fam?'<div class="cartao tile"><small>Reserva da família</small><div class="grande">'+(chegaFam?esc(nomeMesCurto(chegaFam.ym))+' <small>'+chegaFam.ym.slice(0,4)+'</small>':brl0(ult.reservaFam))+'</div><p class="nota">'+(chegaFam?'Chega aos '+brl0(R.famMeta)+' da meta':'Em '+nomeMesCurto(ult.ym)+', de '+brl0(R.famMeta)+' da meta')+'</p></div>':'')+
 '';
-  return '<div class="pagina"><div><h2 class="h2">Projeções</h2><p class="intro">Como a casa e a Crown ficam nos próximos meses, se o orçamento e os clientes seguirem como estão hoje.</p></div>'+
+  return '<div class="pagina"><div><h2 class="h2">Projeções</h2><p class="intro">Como a casa e a Crown ficam do resto de '+nomeMesCurto(L[0].ym)+' até '+nomeMesCurto(ult.ym)+', se o orçamento e os clientes seguirem como estão hoje. A conta sempre parte de hoje, qualquer que seja o mês escolhido no topo.</p></div>'+
     '<div class="filtros"><div class="seg seg-meses" role="group" aria-label="Quantos meses projetar"><span class="seg-rot">Projetar</span>'+
-      '<button data-act="proj-mais" data-n="-1" aria-label="Um mês a menos"'+(L.length<=1?' disabled':'')+'>−</button>'+
-      '<select class="campo" id="proj-h" aria-label="Meses de projeção">'+Array.apply(null,{length:24}).map(function(_,k){ var m=k+1; return '<option value="'+m+'"'+(m===L.length?' selected':'')+'>'+m+(m===1?' mês':' meses')+'</option>'; }).join('')+'</select>'+
-      '<button data-act="proj-mais" data-n="1" aria-label="Um mês a mais"'+(L.length>=24?' disabled':'')+'>+</button></div>'+
+      '<button data-act="proj-mais" data-n="-1" aria-label="Um mês a menos"'+(L.length<=2?' disabled':'')+'>−</button>'+
+      '<select class="campo" id="proj-h" aria-label="Meses de projeção">'+Array.apply(null,{length:24}).map(function(_,k){ var m=k+1; return '<option value="'+m+'"'+(m===L.length-1?' selected':'')+'>'+m+(m===1?' mês':' meses')+' à frente (até '+nomeMesCurto(addMes(L[0].ym,m))+')</option>'; }).join('')+'</select>'+
+      '<button data-act="proj-mais" data-n="1" aria-label="Um mês a mais"'+(L.length>=25?' disabled':'')+'>+</button></div>'+
       '<div class="seg" role="group" aria-label="Orçamento">'+seg('modo','minimo','Orçamento mínimo')+seg('modo','ideal','Ideal')+'</div>'+
       '<div class="seg" role="group" aria-label="Novos clientes por mês"><span class="seg-rot">Novos clientes por mês</span>'+seg('novos',0,'0')+seg('novos',1,'1')+seg('novos',2,'2')+seg('novos',3,'3')+'</div></div>'+
+    partida+
     (!R.sc||!R.sk?'<div class="faixa"><span><b>Informe o saldo da conta '+(!R.sc&&!R.sk?'da casa e da Crown':!R.sc?'da casa':'da Crown')+'</b> para a projeção partir do número real. Por enquanto '+(!R.sc&&!R.sk?'elas começam':'ela começa')+' em R$ 0. <button class="btn btn-escuro btn-p" data-act="ver" data-v="ajustar">Ajustar finanças</button></span></div>':
-      (idade>7?'<div class="faixa"><span>O saldo da casa foi informado há '+idade+' dias. <button class="link" data-act="ver" data-v="ajustar">Atualizar agora</button></span></div>':''))+
+      (velhos.length?'<div class="faixa"><span><b>'+velhos.join(' e ')+'.</b> O mês atual só fecha certo com os dois saldos de hoje. <button class="btn btn-escuro btn-p" data-act="ver" data-v="ajustar">Atualizar agora</button></span></div>':''))+
     '<div class="grade tiles">'+tiles+'</div>'+
     '<section class="secao"><div class="cartao"><h4>Contas no fim de cada mês</h4>'+legenda(serContas)+gCasa+'</div></section>'+
     (gRes?'<section class="secao"><div class="cartao"><h4>Reservas</h4>'+legenda(serRes)+gRes+'</div></section>':'')+
@@ -1810,6 +1848,12 @@ document.addEventListener('click',function(ev){
     case 'cx-obs': S.cxObs[el.dataset.k]=true; render(); var o=document.getElementById(el.dataset.k+'-o'); if(o) o.focus(); break;
     case 'ordem-cli': setPath(S.cfg,'ordemClientes',el.dataset.o); salvarCfg(); render(); break;
     case 'cx-editar': S.cxEdit=!S.cxEdit; render(); window.scrollTo({top:0,behavior:'smooth'}); break;
+    case 'pl-alternar': (function(){
+      var ymA=ymDe(hoje()), atual=ultimoAjuste('prolabore',ymA), novo=(atual&&atual.valor===1)?0:1;
+      S.db.collection('ajustes').add({tipo:'prolabore',ref:ymA,valor:novo,data:hoje(),em:new Date().toISOString(),por:S.usuario?S.usuario.nome:''}).then(function(r){
+        render(); toast(novo?'Pró-labore marcado como já recebido':'Pró-labore marcado como ainda a receber','A projeção de '+nomeMesCurto(ymA)+' foi refeita.',false,{rotulo:'Desfazer',fn:function(){ S.db.doc('ajustes/'+r.id)['delete']().then(function(){ render(); toast('Desfeito'); }); }});
+      });
+    })(); break;
     case 'proj-mais': (function(){ S.proj.h=Math.max(1,Math.min(24,(Math.round(num(S.proj.h))||6)+Number(el.dataset.n))); try{ localStorage.setItem('celeiro-proj',JSON.stringify(S.proj)); }catch(e){} render(); })(); break;
     case 'proj': (function(){ var k=el.dataset.k, v=el.dataset.v; S.proj[k]= k==='modo'?v:Number(v); try{ localStorage.setItem('celeiro-proj',JSON.stringify(S.proj)); }catch(e){} render(); })(); break;
     case 'aj-rm':
@@ -1921,6 +1965,7 @@ document.addEventListener('submit',function(ev){
     var ymP=ymFaturaAPagar(), ymN=addMes(ymP,1);
     var c1=vA('aj-casa'); if(c1!=null) ops.push(['ajustes',{tipo:'saldo',ref:'casa',valor:c1,data:hjA,em:emA,por:quem}]);
     var c2=vA('aj-crown'); if(c2!=null) ops.push(['ajustes',{tipo:'saldo',ref:'crown',valor:c2,data:hjA,em:emA,por:quem}]);
+    var c3=vA('aj-custos'); if(c3!=null) ops.push(['ajustes',{tipo:'custos',ref:ymDe(hjA),valor:Math.max(0,c3),data:hjA,em:emA,por:quem}]);
     var f0=vA('aj-fat0'); if(f0!=null) ops.push(['ajustes',{tipo:'fatura',ref:ymP,valor:f0,diferenca:Math.round((f0-comprasFatura(ymP))*100)/100,data:hjA,em:emA,por:quem}]);
     var f1=vA('aj-fat1'); if(f1!=null) ops.push(['ajustes',{tipo:'fatura',ref:ymN,valor:f1,diferenca:Math.round((f1-comprasFatura(ymN))*100)/100,data:hjA,em:emA,por:quem}]);
     fundos().forEach(function(fd){ var xv=vA('aj-f-'+fd.id); if(xv==null) return; var d=Math.round((xv-saldoFundo(fd.id))*100)/100; if(Math.abs(d)>0.009) ops.push(['movimentos',{fundo:fd.id,valor:d,data:hjA,nota:'Ajuste de saldo',tipo:'ajuste',por:quem}]); });
@@ -2236,7 +2281,7 @@ function entrar(usuario){
   db.collection('movimentos').onSnapshot(function(snap){ S.movs=snap.docs.map(function(d){ var x=d.data(); x.id=d.id; x.valor=num(x.valor); return x; }); pedirRender(); });
   db.collection('ajustes').onSnapshot(function(snap){ S.ajustes=snap.docs.map(function(d){ var x=d.data(); x.id=d.id; x.valor=num(x.valor); x.diferenca=num(x.diferenca); return x; }); pedirRender(); });
   db.collection('exames').onSnapshot(function(snap){ var o={}; snap.docs.forEach(function(d){ o[d.id]=d.data(); }); S.exames=o; pedirRender(); });
-  assinarLanc(); assinarReceb();
+  assinarLanc(); assinarReceb(); assinarRecebHoje();
   db.iniciar().catch(function(e){ document.getElementById('vista').innerHTML='<div class="pagina"><div class="carregando"><p>'+esc(e.message||'Não consegui carregar os dados.')+'</p><button class="btn btn-escuro" data-act="recarregar">Tentar de novo</button></div></div>'; });
 }
 aplicarCorApp();
