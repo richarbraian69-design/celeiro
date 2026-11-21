@@ -1495,15 +1495,15 @@ function valorCampo(v){ return v==null ? '' : String(Math.round(v*100)/100).repl
 function vAjustar(){
   var hj=hoje(), ymMes=ymDe(hj), ymP=ymFaturaAPagar(), ymN=addMes(ymP,1);
   var sc=ultimoAjuste('saldo','casa'), sk=ultimoAjuste('saldo','crown'), pl=ultimoAjuste('prolabore',ymMes), cuA=ultimoAjuste('custos',ymMes);
-  function quando(a){ return a ? 'Último: '+brl(a.valor)+' em '+dataBR(a.data) : 'Ainda não informado'; }
-  function campo(id,rot,ajuda,atual){ return '<label>'+rot+'<input class="campo num" id="'+id+'" inputmode="decimal" placeholder="'+(atual!=null?valorCampo(atual):'0,00')+'" autocomplete="off"><small class="nota">'+ajuda+'</small></label>'; }
+  function quando(a){ return a ? 'Último: '+brl(a.valor)+' em '+dataBR(a.data)+(a.tipo==='saldo' ? (a.data<hj ? '. <button class="link" type="button" data-act="saldo-confirma" data-ref="'+esc(a.ref)+'">Continua '+brl(a.valor)+' hoje</button>' : ' (hoje)') : '') : 'Ainda não informado'; }
+  function campo(id,rot,ajuda,atual){ return '<label>'+rot+'<input class="campo num" id="'+id+'" inputmode="decimal" placeholder="'+(atual!=null?'sem mudar ('+valorCampo(atual)+')':'0,00')+'" autocomplete="off"><small class="nota">'+ajuda+'</small></label>'; }
   var suspeitos=S.lanc.filter(function(l){ return l.valor>=5000 && (ymDe(l.data)===ymMes || ymDe(l.data)===addMes(ymMes,-1)); }).sort(function(a,b){ return b.valor-a.valor; });
   var est=gastoNormalCartaoEstimado(), normalCfg=num(cfg().cartao&&cfg().cartao.normal);
   var hist=[].concat(
     S.ajustes.filter(function(a){ return a.tipo==='saldo' || a.tipo==='fatura' || a.tipo==='custos'; }).map(function(a){ return {em:a.em, data:a.data, id:a.id, col:'ajustes', txt:(a.tipo==='saldo'?(a.ref==='casa'?'Saldo da conta da casa':'Saldo da conta da Crown'):a.tipo==='custos'?'Custos da Crown a pagar em '+nomeMesCurto(a.ref):'Fatura que vence '+dataBR(dataVencto(a.ref))), val:a.valor}; }),
     S.movs.filter(function(m){ return m.tipo==='ajuste'; }).map(function(m){ var f=acharFundo(m.fundo)||{}; return {em:m.data+'T23:59', data:m.data, id:m.id, col:'movimentos', txt:'Saldo de '+(f.nome||'reserva')+' ('+(m.valor<0?'−':'+')+brl(Math.abs(m.valor))+')', val:null}; })
   ).sort(function(a,b){ return String(b.em).localeCompare(String(a.em)); }).slice(0,15);
-  return '<div class="pagina"><div><h2 class="h2">Ajustar <em>finanças</em></h2><p class="intro">Acerte os números do Celeiro com o que o banco mostra hoje. Ajuste não conta como gasto nem como dinheiro guardado no mês. Preencha só o que mudou; o resto fica como está.</p></div>'+
+  return '<div class="pagina"><div><h2 class="h2">Ajustar <em>finanças</em></h2><p class="intro">Acerte os números do Celeiro com o que o banco mostra hoje. Ajuste não conta como gasto nem como dinheiro guardado no mês. Preencha só o que mudou: campo em branco não muda nada. Se um saldo continua igual, use o "Continua… hoje" embaixo dele.</p></div>'+
     (suspeitos.length?'<section class="secao"><div class="faixa"><span><b>Estes gastos parecem saldos lançados como gasto.</b> Se for o caso, apague aqui (no X) e informe o valor certo logo abaixo.</span></div><div class="painel">'+suspeitos.map(linhaLanc).join('')+'</div></section>':'')+
     '<form class="aj-form" data-form="ajuste">'+
     '<div class="forma"><h3>Contas no <em>banco</em></h3><div class="campos">'+
@@ -1643,8 +1643,9 @@ function vProjecoes(){
   L.forEach(function(l){ l.juntas=l.saldoCasa+l.saldoCrown; l.tudo=l.juntas+(R.fam?l.reservaFam:0)+(R.crownF?l.reservaCrown:0); });
   var idade=R.sc?Math.round((new Date(hj)-new Date(R.sc.data))/864e5):null;
   var idadeK=R.sk?Math.round((new Date(hj)-new Date(R.sk.data))/864e5):null, velhos=[];
-  if(idade!=null && idade>5) velhos.push('O saldo da casa é de '+dataBR(R.sc.data)+' (há '+idade+' dias)');
-  if(idadeK!=null && idadeK>5) velhos.push((velhos.length?'o':'O')+' saldo da Crown é de '+dataBR(R.sk.data)+' (há '+idadeK+' dias)');
+  var velhosBt=[];
+  if(idade!=null && idade>5){ velhos.push('O saldo da casa é de '+dataBR(R.sc.data)+' (há '+idade+' dias)'); velhosBt.push('<button class="btn btn-escuro btn-p" data-act="saldo-confirma" data-ref="casa">A casa continua com '+brl0(R.sc.valor)+'</button>'); }
+  if(idadeK!=null && idadeK>5){ velhos.push((velhos.length?'o':'O')+' saldo da Crown é de '+dataBR(R.sk.data)+' (há '+idadeK+' dias)'); velhosBt.push('<button class="btn btn-escuro btn-p" data-act="saldo-confirma" data-ref="crown">A Crown continua com '+brl0(R.sk.valor)+'</button>'); }
   var mes0=nomeMesCurto(L[0].ym);
   var partida='<div class="faixa cinza partida"><div><b>De onde a conta parte (resto de '+mes0+')</b><ul>'+
     '<li>Conta da casa: <b>'+brl0(R.inicioCasa)+'</b>'+(R.sc?' em '+dataBR(R.sc.data):' (não informado)')+'. Conta da Crown: <b>'+brl0(R.inicioCrownConta)+'</b>'+(R.sk?' em '+dataBR(R.sk.data):' (não informado)')+'.</li>'+
@@ -1702,8 +1703,8 @@ function vProjecoes(){
       '<div class="seg" role="group" aria-label="Orçamento">'+seg('modo','minimo','Orçamento mínimo')+seg('modo','ideal','Ideal')+'</div>'+
       '<div class="seg" role="group" aria-label="Novos clientes por mês"><span class="seg-rot">Novos clientes por mês</span>'+seg('novos',0,'0')+seg('novos',1,'1')+seg('novos',2,'2')+seg('novos',3,'3')+'</div></div>'+
     partida+
-    (!R.sc||!R.sk?'<div class="faixa"><span><b>Informe o saldo da conta '+(!R.sc&&!R.sk?'da casa e da Crown':!R.sc?'da casa':'da Crown')+'</b> para a projeção partir do número real. Por enquanto '+(!R.sc&&!R.sk?'elas começam':'ela começa')+' em R$ 0. <button class="btn btn-escuro btn-p" data-act="ver" data-v="ajustar">Ajustar finanças</button></span></div>':
-      (velhos.length?'<div class="faixa"><span><b>'+velhos.join(' e ')+'.</b> O mês atual só fecha certo com os dois saldos de hoje. <button class="btn btn-escuro btn-p" data-act="ver" data-v="ajustar">Atualizar agora</button></span></div>':''))+
+    (!R.sc||!R.sk?'<div class="faixa"><span><b>Informe o saldo da conta '+(!R.sc&&!R.sk?'da casa e da Crown':!R.sc?'da casa':'da Crown')+'</b> para a projeção partir do número real. Por enquanto '+(!R.sc&&!R.sk?'elas começam':'ela começa')+' em R$ 0. <button class="btn btn-escuro btn-p" data-act="ver" data-v="ajustar">Ajustar finanças</button></span></div>':'')+
+      (velhos.length?'<div class="faixa"><span><b>'+velhos.join(' e ')+'.</b> O mês atual só fecha certo com os dois saldos de hoje. '+velhosBt.join(' ')+' <button class="btn btn-claro btn-p" data-act="ver" data-v="ajustar">Informar outro valor</button></span></div>':'')+
     '<div class="grade tiles">'+tiles+'</div>'+
     '<section class="secao"><div class="cartao"><h4>Contas no fim de cada mês</h4>'+legenda(serContas)+gCasa+'</div></section>'+
     (gRes?'<section class="secao"><div class="cartao"><h4>Reservas</h4>'+legenda(serRes)+gRes+'</div></section>':'')+
@@ -1848,6 +1849,12 @@ document.addEventListener('click',function(ev){
     case 'cx-obs': S.cxObs[el.dataset.k]=true; render(); var o=document.getElementById(el.dataset.k+'-o'); if(o) o.focus(); break;
     case 'ordem-cli': setPath(S.cfg,'ordemClientes',el.dataset.o); salvarCfg(); render(); break;
     case 'cx-editar': S.cxEdit=!S.cxEdit; render(); window.scrollTo({top:0,behavior:'smooth'}); break;
+    case 'saldo-confirma': (function(){
+      var ref=el.dataset.ref==='crown'?'crown':'casa', ult=ultimoAjuste('saldo',ref); if(!ult) return;
+      S.db.collection('ajustes').add({tipo:'saldo',ref:ref,valor:ult.valor,data:hoje(),em:new Date().toISOString(),por:S.usuario?S.usuario.nome:''}).then(function(r){
+        render(); toast('Saldo da '+(ref==='crown'?'Crown':'casa')+' confirmado',brl(ult.valor)+' hoje.',false,{rotulo:'Desfazer',fn:function(){ S.db.doc('ajustes/'+r.id)['delete']().then(function(){ render(); toast('Desfeito'); }); }});
+      });
+    })(); break;
     case 'pl-alternar': (function(){
       var ymA=ymDe(hoje()), atual=ultimoAjuste('prolabore',ymA), novo=(atual&&atual.valor===1)?0:1;
       S.db.collection('ajustes').add({tipo:'prolabore',ref:ymA,valor:novo,data:hoje(),em:new Date().toISOString(),por:S.usuario?S.usuario.nome:''}).then(function(r){
